@@ -1,0 +1,63 @@
+﻿.explosion {
+    position: absolute;
+}
+
+.explosion1 {
+    background: url('../images/sprites/explosions/explosion_1.png') 0 0 no-repeat;
+    width: 93px;
+    height: 93px;
+    -webkit-animation: animate-explosion1 2.5s steps(43) /*infinite*/;
+}
+
+@-webkit-keyframes animate-explosion1 {
+    0% {background-position: 0 0;}
+    100% {background-position: -3784px 0;}
+}
+
+.explosion2 {
+    background: url('../images/sprites/explosions/explosion_2.png') 0 0 no-repeat;
+    width: 80px;
+    height: 109px;
+    -webkit-animation: animate-explosion2 2.5s steps(46);
+}
+
+@-webkit-keyframes animate-explosion2 {   
+    0% {background-position: 0 0;}
+    100% {background-position: -3450px 0;}
+}
+
+.explosion3 {
+    background: url('../images/sprites/explosions/explosion_3.png') 0 0 no-repeat;
+    width: 90px;
+    height: 97px;
+    -webkit-animation: animate-explosion3 2.5s steps(47);
+}
+
+@-webkit-keyframes animate-explosion3 {
+    0% {background-position: 0 0;}
+    100% {background-position: -4841px 0;}
+}
+
+.explosion4 {
+    background: url('../images/sprites/explosions/explosion_4.png') 0 0 no-repeat;
+    width: 105px;
+    height: 105px;
+    -webkit-animation: animate-explosion4 2.5s steps(45);
+}
+
+@-webkit-keyframes animate-explosion4 {
+    0% {background-position: 0 0;}
+    100% {background-position: -5085px 0;}
+}
+
+.explosion5 {
+    background: url('../images/sprites/explosions/explosion_5.png') 0 0 no-repeat;
+    width: 91px;
+    height: 91px;
+    -webkit-animation: animate-explosion4 2.5s steps(54);
+}
+
+@-webkit-keyframes animate-explosion5 {
+    0% {background-position: 0 0;}
+    100% {background-position: -4136px 0;}
+}

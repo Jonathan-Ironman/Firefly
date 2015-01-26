@@ -1,0 +1,74 @@
+.icon-cog,.icon-newgame,.icon-microphone,.icon-microphone-off,.icon-volume-increase,.icon-volume-decrease,.icon-research,.icon-music,.icon-spinner,.icon-cancel-circle,.icon-checkmark-circle,.icon-prev,.icon-next,.icon-volume-high,.icon-volume-medium,.icon-volume-low,.icon-volume-silent,.icon-volume-mute,.icon-warning,.icon-earth,.icon-fullscreen-exit,.icon-fullscreen {
+	display: inline-block;
+	width: 28px;
+	height: 28px;
+	background-image: url(sprites.png);
+	background-repeat: no-repeat;
+}
+.icon-cog {
+	background-position: 0 0;
+}
+.icon-newgame {
+	background-position: -56px 0;
+}
+.icon-microphone {
+	background-position: -112px 0;
+}
+.icon-microphone-off {
+	background-position: -168px 0;
+}
+.icon-volume-increase {
+	background-position: -224px 0;
+}
+.icon-volume-decrease {
+	background-position: -280px 0;
+}
+.icon-research {
+	background-position: -336px 0;
+}
+.icon-music {
+	background-position: -392px 0;
+}
+.icon-spinner {
+	background-position: -448px 0;
+}
+.icon-cancel-circle {
+	background-position: -504px 0;
+}
+.icon-checkmark-circle {
+	background-position: -560px 0;
+}
+.icon-volume-high {
+	background-position: -728px 0;
+	width: 30px;
+}
+.icon-volume-medium {
+	background-position: -784px 0;
+}
+.icon-volume-low {
+	background-position: -840px 0;
+}
+.icon-volume-silent {
+	background-position: 0 -56px;
+}
+.icon-volume-mute {
+	background-position: -56px -56px;
+}
+.icon-warning {
+	background-position: -112px -56px;
+}
+.icon-earth {
+	background-position: -168px -56px;
+}
+.icon-prev {
+	background-position: -224px -56px;
+}
+.icon-next {
+	background-position: -280px -56px;
+}
+.icon-fullscreen-exit {
+	background-position: -336px -56px;
+}
+.icon-fullscreen {
+	background-position: -392px -56px;
+}

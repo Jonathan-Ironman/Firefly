@@ -1,0 +1,11 @@
+﻿.missile {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: white;
+    transition-duration: 1s;
+    transition-property: left, top;
+    transition-timing-function: linear;
+    z-index: 9;
+}
