@@ -9,6 +9,21 @@ document.addEventListener("keyup", function (event) {
     KEYDOWN[event.which] = false;
 });
 
+// Track mouse all the time.
+document.addEventListener('mousemove', function storeMouse(event) {
+    currentMousePos = [event.clientX, event.clientY];
+});
+
+// TODO: temp helper, should get better versions in util.js
+function getRandomInt(min, max) {
+    return Math.round(Math.random() * (max - min)) + min;
+}
+
+// Euclidean modulo.
+function mod(x, value) { 
+    return x >= 0 ? x % value : value + x % value;
+}
+
 //$(document).on("contextmenu", function (event) {
 //    //event.preventDefault();
 //    //var target = event.target;
@@ -41,3 +56,21 @@ function warn(message, duration) {
 window.onerror = function errorHandler(errorMsg, url, lineNumber) {
     return alert(errorMsg, url, 4000);
 };
+
+
+// Object.extend helper method.
+if (typeof Object.extend !== 'function') {
+    Object.extend = function (d, s) {
+        for (var k in s) {
+            if (s.hasOwnProperty(k)) {
+                var v = s[k];
+                if (d.hasOwnProperty(k) && typeof d[k] === "object" && typeof v === "object") {
+                    Object.extend(d[k], v);
+                } else {
+                    d[k] = v;
+                }
+            }
+        }
+        return d;
+    };
+}

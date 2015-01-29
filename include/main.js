@@ -1,56 +1,62 @@
 // Globals.
-var FIREFLY;
+var Firefly;
 var currentMousePos = [0, 0];
 
 // Initialize game.
 $(document).ready(function () {
-    FIREFLY = document.getElementById('firefly');
-    FIREFLY.WIDTH = FIREFLY.offsetWidth;
-    FIREFLY.HEIGHT = FIREFLY.offsetHeight;
-    FIREFLY.SPEED = 8;
+    //Firefly = document.getElementById('firefly');
+    //Firefly.width = Firefly.elem.offsetWidth;
+    //Firefly.height = Firefly.elem.offsetHeight;
+    //Firefly.speed = 8;
 
-    FIREFLY.X = FIREFLY.offsetLeft;
-    FIREFLY.Y = FIREFLY.offsetTop;
-    FIREFLY.CENTER = {
-        X: FIREFLY.X + FIREFLY.WIDTH / 2,
-        Y: FIREFLY.Y + FIREFLY.HEIGHT / 2,
-    };
-    FIREFLY.ANGLE = 0;
+    //Firefly.x = Firefly.elem.offsetLeft;
+    //Firefly.y = Firefly.elem.offsetTop;
+    //Firefly.CENTER = {
+    //    X: Firefly.x + Firefly.width / 2,
+    //    Y: Firefly.y + Firefly.height / 2,
+    //};
+    //Firefly.angle = 0;
 
-    requestAnimationFrame(render);
+    //// Test
+    //testShip = new Ship({
+    //    speed: 12
+    //});
+
+    Firefly = new Ship({
+        speed: 12
+    });
+
+    // Delay start till ship ready.
+    window.setTimeout(render, 50);
 });
 
 function render() {
     requestAnimationFrame(render);
 
     // Update ship.
-    FIREFLY.X = FIREFLY.offsetLeft;
-    FIREFLY.Y = FIREFLY.offsetTop;
-    FIREFLY.CENTER.X = FIREFLY.X + FIREFLY.WIDTH / 2;
-    FIREFLY.CENTER.Y = FIREFLY.Y + FIREFLY.HEIGHT / 2;
+    Firefly.x = Firefly.elem.offsetLeft;
+    Firefly.y = Firefly.elem.offsetTop;
+
+    // Do with need this every cycle?
+    Firefly.center.x = Firefly.x + Firefly.width / 2;
+    Firefly.center.y = Firefly.y + Firefly.height / 2;
 
     // Find ship angle.
-    var mouseAngle = getAngle(FIREFLY.CENTER.X, FIREFLY.CENTER.Y, currentMousePos[0], currentMousePos[1]);
-
-    
-
-    var turnDegrees = mouseAngle - FIREFLY.ANGLE;
-    var maxDegrees = 5;
-
-    console.log(mouseAngle + " " + FIREFLY.ANGLE);
+    var mouseAngle = getAngle(Firefly.center.x, Firefly.center.y, currentMousePos[0], currentMousePos[1]);
+    var turnDegrees = mod(mouseAngle - Firefly.angle + 180, 360) - 180;
 
     if (turnDegrees > -5 && turnDegrees < 5) {
-        // Do nothing.
+        Firefly.angle = mouseAngle;
     }
     else if (turnDegrees < 0) {
-        FIREFLY.ANGLE -= 5;
+        Firefly.angle -= 5;
     }
     else {
-        FIREFLY.ANGLE += 5;
+        Firefly.angle += 5;
     }
 
     // Set ship direction.
-    FIREFLY.style.transform = 'rotate(' + (FIREFLY.ANGLE + 90) + 'deg)';
+    Firefly.elem.style.transform = 'rotate(' + (Firefly.angle + 90) + 'deg)';
 
     var movement = false;
 
@@ -66,21 +72,21 @@ function render() {
 
     if (KEYDOWN[KEYS.SPACE]) fireMissile();
 
-    if (!movement) FIREFLY.classList.remove("moving");
+    if (!movement) Firefly.elem.classList.remove("moving");
 }
 
 function move(dir) {
-    var movingSpeed = FIREFLY.SPEED;
+    var movingSpeed = Firefly.speed;
     var hor = dir == 'left' || dir == 'right' ? true : false;
     var inverse = dir == 'down' || dir == 'right' ? -1 : 1;
 
-    FIREFLY.classList.add('moving');
+    Firefly.elem.classList.add('moving');
 
     if (hor) {
-        FIREFLY.style.left = FIREFLY.offsetLeft - movingSpeed * inverse + "px";
+        Firefly.elem.style.left = Firefly.elem.offsetLeft - movingSpeed * inverse + "px";
     }
     else {
-        FIREFLY.style.top = FIREFLY.offsetTop - movingSpeed * inverse + "px";
+        Firefly.elem.style.top = Firefly.elem.offsetTop - movingSpeed * inverse + "px";
     }
 }
 
@@ -89,20 +95,20 @@ function (event) {
     var $target = $(event.target);
 
     // Firefly.
-    if ($target.is(FIREFLY) && event.originalEvent.propertyName === 'top') { // Keep from firing for each attr.
+    if ($target.is(Firefly.elem) && event.originalEvent.propertyName === 'top') { // Keep from firing for each attr.
         console.log("Firefly: " + event.type + " " + new Date().getTime());
-        FIREFLY.classList.remove('transitions');
+        Firefly.elem.classList.remove('transitions');
     }
 });
 
 function fireflyMouseMove(e) {
-    var newX = e.clientX - FIREFLY.WIDTH / 2;
-    newY = e.clientY - FIREFLY.HEIGHT / 2;
+    var newX = e.clientX - Firefly.width / 2;
+    newY = e.clientY - Firefly.height / 2;
 
-    FIREFLY.style.top = newY + "px";
-    FIREFLY.style.left = newX + "px";
+    Firefly.elem.style.top = newY + "px";
+    Firefly.elem.style.left = newX + "px";
 
-    FIREFLY.classList.add('transitions');
+    Firefly.elem.classList.add('transitions');
 }
 
 $(document).on('click', fireflyMouseMove);
@@ -122,4 +128,58 @@ function lineDistance(point1, point2) { // TODO implement speed
 
 function getAngle(x1, y1, x2, y2) {
     return Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+}
+
+
+// **colliding()** returns true if two passed bodies are colliding.
+// The approach is to test for five situations.  If any are true,
+// the bodies are definitely not colliding.  If none of them
+// are true, the bodies are colliding.
+// 1. b1 is the same body as b2.
+// 2. Right of `b1` is to the left of the left of `b2`.
+// 3. Bottom of `b1` is above the top of `b2`.
+// 4. Left of `b1` is to the right of the right of `b2`.
+// 5. Top of `b1` is below the bottom of `b2`.
+function isColliding(b1, b2) {
+    return !(
+      b1 === b2 ||
+        b1.x + b1.width < b2.x - b2.width ||
+        b1.y + b1.height < b2.y - b2.height ||
+        b1.x - b1.width > b2.x + b2.width ||
+        b1.y - b1.height > b2.y + b2.height
+    );
+}
+
+// Ship constructor.
+function Ship(options) {
+    this.elem = document.createElement("div");
+    this.elem.className = "ship";
+    this.elem.style.visibility = "hidden";
+
+    this.speed = 8;
+
+    this.x = 100;
+    this.y = 100;
+    this.angle = 0;
+
+    this.update = function () {
+
+    };
+
+    // Customize properties.
+    Object.extend(this, options);
+
+    // Add to document and measure it.
+    var that = this;
+    document.body.appendChild(this.elem);
+
+    window.setTimeout(function () {
+        that.width = that.elem.offsetWidth;
+        that.height = that.elem.offsetHeight;
+        that.center = {
+            x: that.x + that.width / 2,
+            y: that.y + that.height / 2
+        };
+        that.elem.style.cssText = "top: 50%; left: 50%;";
+    }, 10);
 }

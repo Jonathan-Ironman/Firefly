@@ -1,8 +1,8 @@
 ﻿function fireMissile() {
     var mouseX = currentMousePos[0],
         mouseY = currentMousePos[1],
-        missileStartX = FIREFLY.CENTER.X,
-        missileStartY = FIREFLY.CENTER.Y,
+        missileStartX = Firefly.center.x,
+        missileStartY = Firefly.center.y,
         missile = document.createElement("div");
 
     missile.style.top = missileStartY + "px";
@@ -52,17 +52,6 @@ function (event) {
         $target.remove();
     }
 });
-
-// Track mouse all the time.
-
-document.addEventListener('mousemove', function storeMouse(event) {
-    currentMousePos = [event.clientX, event.clientY];
-});
-
-// TODO: temp helper, should get better versions in util.js
-function getRandomInt(min, max) {
-    return Math.round(Math.random() * (max - min)) + min;
-}
 
 // TODO: move to xxx.js
 $(document).on('animationend webkitAnimationEnd',
