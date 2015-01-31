@@ -1,30 +1,16 @@
-// Globals.
+ // Globals.
 var Firefly;
-var currentMousePos = [0, 0];
+var enemies = new Array(3);
+var currentMousePos = { x: 0, y: 0 };
 
 // Initialize game.
 $(document).ready(function () {
-    //Firefly = document.getElementById('firefly');
-    //Firefly.width = Firefly.elem.offsetWidth;
-    //Firefly.height = Firefly.elem.offsetHeight;
-    //Firefly.speed = 8;
+    Firefly = Player();
 
-    //Firefly.x = Firefly.elem.offsetLeft;
-    //Firefly.y = Firefly.elem.offsetTop;
-    //Firefly.CENTER = {
-    //    X: Firefly.x + Firefly.width / 2,
-    //    Y: Firefly.y + Firefly.height / 2,
-    //};
-    //Firefly.angle = 0;
-
-    //// Test
-    //testShip = new Ship({
-    //    speed: 12
-    //});
-
-    Firefly = new Ship({
-        speed: 12
-    });
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i] = Enemy();
+        enemies[i].init();
+    }
 
     // Delay start till ship ready.
     window.setTimeout(render, 50);
@@ -33,49 +19,14 @@ $(document).ready(function () {
 function render() {
     requestAnimationFrame(render);
 
-    // Update ship.
-    Firefly.x = Firefly.elem.offsetLeft;
-    Firefly.y = Firefly.elem.offsetTop;
+    Firefly.update();
 
-    // Do with need this every cycle?
-    Firefly.center.x = Firefly.x + Firefly.width / 2;
-    Firefly.center.y = Firefly.y + Firefly.height / 2;
-
-    // Find ship angle.
-    var mouseAngle = getAngle(Firefly.center.x, Firefly.center.y, currentMousePos[0], currentMousePos[1]);
-    var turnDegrees = mod(mouseAngle - Firefly.angle + 180, 360) - 180;
-
-    if (turnDegrees > -5 && turnDegrees < 5) {
-        Firefly.angle = mouseAngle;
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].update();
     }
-    else if (turnDegrees < 0) {
-        Firefly.angle -= 5;
-    }
-    else {
-        Firefly.angle += 5;
-    }
-
-    // Set ship direction.
-    Firefly.elem.style.transform = 'rotate(' + (Firefly.angle + 90) + 'deg)';
-
-    var movement = false;
-
-    var left = KEYDOWN[KEYS.LEFT_ARROW] || KEYDOWN[KEYS.KEY_A];
-    var right = KEYDOWN[KEYS.RIGHT_ARROW] || KEYDOWN[KEYS.KEY_D];
-    var up = KEYDOWN[KEYS.UP_ARROW] || KEYDOWN[KEYS.KEY_W];
-    var down = KEYDOWN[KEYS.DOWN_ARROW] || KEYDOWN[KEYS.KEY_S];
-
-    if (left) { move('left'); movement = true; }
-    if (right) { move('right'); movement = true; }
-    if (up) { move('up'); movement = true; }
-    if (down) { move('down'); movement = true; }
-
-    if (KEYDOWN[KEYS.SPACE]) fireMissile();
-
-    if (!movement) Firefly.elem.classList.remove("moving");
 }
 
-function move(dir) {
+function playerMove(dir) {
     var movingSpeed = Firefly.speed;
     var hor = dir == 'left' || dir == 'right' ? true : false;
     var inverse = dir == 'down' || dir == 'right' ? -1 : 1;
@@ -96,7 +47,7 @@ function (event) {
 
     // Firefly.
     if ($target.is(Firefly.elem) && event.originalEvent.propertyName === 'top') { // Keep from firing for each attr.
-        console.log("Firefly: " + event.type + " " + new Date().getTime());
+        //console.log("Firefly: " + event.type + " " + new Date().getTime());
         Firefly.elem.classList.remove('transitions');
     }
 });
@@ -112,24 +63,6 @@ function fireflyMouseMove(e) {
 }
 
 $(document).on('click', fireflyMouseMove);
-
-function lineDistance(point1, point2) { // TODO implement speed
-    var xs = 0;
-    var ys = 0;
-
-    xs = point2.x - point1.x;
-    xs = xs * xs;
-
-    ys = point2.y - point1.y;
-    ys = ys * ys;
-
-    return Math.sqrt(xs + ys);
-}
-
-function getAngle(x1, y1, x2, y2) {
-    return Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-}
-
 
 // **colliding()** returns true if two passed bodies are colliding.
 // The approach is to test for five situations.  If any are true,
@@ -150,21 +83,56 @@ function isColliding(b1, b2) {
     );
 }
 
+
+// Set coords.
+function updateCoords(obj) {
+    obj.x = obj.elem.offsetLeft;
+    obj.y = obj.elem.offsetTop;
+}
+
+// Set center.
+function updateCenter(obj) {
+    obj.center.x = obj.x + obj.width / 2;
+    obj.center.y = obj.y + obj.height / 2;
+}
+
+function turn(ship, point) {
+    // Find ship angle.
+    var targetAngle = getAngle(ship.center, point);
+    var turnDegrees = mod(targetAngle - ship.angle + 180, 360) - 180;
+
+    if (turnDegrees > -4 && turnDegrees < 4) {
+        ship.angle = targetAngle;
+    }
+    else if (turnDegrees < 0) {
+        ship.angle -= ship.turnSpeed;
+    }
+    else {
+        ship.angle += ship.turnSpeed;
+    }
+
+    // Set ship direction.
+    ship.elem.style.transform = 'rotate(' + (ship.angle + 90) + 'deg)';
+}
+
 // Ship constructor.
 function Ship(options) {
     this.elem = document.createElement("div");
     this.elem.className = "ship";
     this.elem.style.visibility = "hidden";
 
+    this.health = 100;
+    this.damage = 10;
     this.speed = 8;
+    this.turnSpeed = 4;
+    this.cooldownTime = 20;
+    this.inaccuracy = 100;
 
+    // Can fire.
+    this.cooldown = 0;
     this.x = 100;
     this.y = 100;
     this.angle = 0;
-
-    this.update = function () {
-
-    };
 
     // Customize properties.
     Object.extend(this, options);
@@ -172,7 +140,6 @@ function Ship(options) {
     // Add to document and measure it.
     var that = this;
     document.body.appendChild(this.elem);
-
     window.setTimeout(function () {
         that.width = that.elem.offsetWidth;
         that.height = that.elem.offsetHeight;
@@ -180,6 +147,89 @@ function Ship(options) {
             x: that.x + that.width / 2,
             y: that.y + that.height / 2
         };
-        that.elem.style.cssText = "top: 50%; left: 50%;";
+        // Position and remove visibility: hidden.
+        that.elem.style.cssText = "left: " + that.x + "px; top: " + that.y + "px;";
     }, 10);
+}
+
+// Uh?
+function Player() {
+    var player = new Ship({
+        speed: 12,
+        turnSpeed: 6,
+        // Explosions baby!
+        cooldownTime: 0,
+        update: function () {
+            updateCoords(player);
+            updateCenter(player);
+            turn(player, currentMousePos);
+
+            var movement = false;
+
+            var left = KEYDOWN[KEYS.LEFT_ARROW] || KEYDOWN[KEYS.KEY_A];
+            var right = KEYDOWN[KEYS.RIGHT_ARROW] || KEYDOWN[KEYS.KEY_D];
+            var up = KEYDOWN[KEYS.UP_ARROW] || KEYDOWN[KEYS.KEY_W];
+            var down = KEYDOWN[KEYS.DOWN_ARROW] || KEYDOWN[KEYS.KEY_S];
+
+            if (left) { playerMove('left'); movement = true; }
+            if (right) { playerMove('right'); movement = true; }
+            if (up) { playerMove('up'); movement = true; }
+            if (down) { playerMove('down'); movement = true; }
+
+            // Firing.
+            if (player.cooldown < 1) {
+                if (KEYDOWN[KEYS.SPACE]) {
+                    var offset = player.width / 2.4;
+                    var p1 = pointFromAngle(player.center, player.angle - 90, offset);
+                    var p2 = pointFromAngle(player.center, player.angle - 90, -offset);
+
+                    var t1 = pointFromAngle(currentMousePos, player.angle - 90, offset * 0.5);
+                    var t2 = pointFromAngle(currentMousePos, player.angle - 90, -offset * 0.5);
+
+                    fireMissile(p1, t1);
+                    fireMissile(p2, t2);
+                    player.cooldown = player.cooldownTime;
+                }
+            }
+            else player.cooldown--;
+
+            if (!movement) player.elem.classList.remove("moving");
+        }
+    });
+
+    return player;
+}
+
+// Uh?
+function Enemy() {
+    var enemy = new Ship({
+        speed: 5,
+        x: getRandomInt(50, 400),
+        y: getRandomInt(50, 400),
+
+        init: function () {
+            enemy.elem.classList.add("enemy")
+        },
+
+        update: function () {
+            updateCoords(enemy);
+            updateCenter(enemy);
+            turn(enemy, Firefly.center);
+
+            // Fire.
+            if (enemy.cooldown < 1) {
+                if (chance(1)) {
+                    var target = {
+                        x: Firefly.center.x + getRandomInt(-enemy.inaccuracy, enemy.inaccuracy),
+                        y: Firefly.center.y + getRandomInt(-enemy.inaccuracy, enemy.inaccuracy)
+                    };
+                    fireMissile(enemy.center, target);
+                    enemy.cooldown = enemy.cooldownTime;
+                }
+            }
+            else enemy.cooldown--;
+        }
+    });
+
+    return enemy;
 }

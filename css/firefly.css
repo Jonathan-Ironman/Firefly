@@ -9,6 +9,10 @@
     transition-timing-function: ease-out;
 }
 
+.enemy {
+    background-image: url(../images/objects/enemy1.png);
+}
+
 #firefly {
     position: absolute;
     width: 80px;

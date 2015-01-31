@@ -1,8 +1,8 @@
-﻿function fireMissile() {
-    var mouseX = currentMousePos[0],
-        mouseY = currentMousePos[1],
-        missileStartX = Firefly.center.x,
-        missileStartY = Firefly.center.y,
+﻿function fireMissile(p1, p2) {
+    var targetX = p2.x,
+        targetY = p2.y,
+        missileStartX = p1.x,
+        missileStartY = p1.y,
         missile = document.createElement("div");
 
     missile.style.top = missileStartY + "px";
@@ -13,15 +13,12 @@
 
     // Delay or it will travel instant.
     window.setTimeout(function () {
-        missile.style.top = mouseY + "px";
-        missile.style.left = mouseX + "px";
+        missile.style.top = targetY + "px";
+        missile.style.left = targetX + "px";
     }, 10);
-
-    // Logging.
-    $('.log1').html('Cursor X: ' + mouseX + ' | Cursor Y: ' + mouseY + '<br>Missile start X: ' + missileStartX + ' | Missile start Y: ' + missileStartY);
 }
 
-function explode(x, y) {
+function explode(x, y, scale) {
     var explosion = document.createElement("div");
     var width;
     var height;
@@ -35,6 +32,7 @@ function explode(x, y) {
 
     explosion.style.top = y - height / 2 + "px";
     explosion.style.left = x - width / 2 + "px";
+    explosion.style.transform = "scale(" + scale || 1 + ")";
 }
 
 // Bind end to explosion.    
@@ -43,7 +41,7 @@ function (event) {
     var $target = $(event.target);
     // Missile.
     if ($target.hasClass("missile") && event.originalEvent.propertyName === 'top') { // Keep from firing for each attr.
-        console.log("Missile: " + event.type + " " + event.timeStamp);
+        //console.log("Missile: " + event.type + " " + event.timeStamp);
         //alert("KILL KILL!");
         explode(
          $target.offset().left - $target.width() / 2,
@@ -59,7 +57,7 @@ function (event) {
     var $target = $(event.target);
     // Explosion.
     if ($target.hasClass("explosion")) {
-        console.log("Explosion: type'" + event.target.className + "' " + event.type + " " + event.timeStamp);
+        //console.log("Explosion: type'" + event.target.className + "' " + event.type + " " + event.timeStamp);
         $target.remove();
         //alert("Boom!");
     }

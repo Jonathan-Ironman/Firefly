@@ -1,5 +1,6 @@
 ﻿.explosion {
     position: absolute;
+    z-index: 12;
 }
 
 .explosion1 {
