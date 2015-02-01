@@ -8,9 +8,15 @@
     width: 93px;
     height: 93px;
     -webkit-animation: animate-explosion1 2.5s steps(43) /*infinite*/;
+    animation: animate-explosion1 2.5s steps(43) /*infinite*/;
 }
 
 @-webkit-keyframes animate-explosion1 {
+    0% {background-position: 0 0;}
+    100% {background-position: -3784px 0;}
+}
+
+@keyframes animate-explosion1 {
     0% {background-position: 0 0;}
     100% {background-position: -3784px 0;}
 }
@@ -20,9 +26,15 @@
     width: 80px;
     height: 109px;
     -webkit-animation: animate-explosion2 2.5s steps(46);
+    animation: animate-explosion2 2.5s steps(46);
 }
 
 @-webkit-keyframes animate-explosion2 {   
+    0% {background-position: 0 0;}
+    100% {background-position: -3450px 0;}
+}
+
+@keyframes animate-explosion2 {   
     0% {background-position: 0 0;}
     100% {background-position: -3450px 0;}
 }
@@ -32,9 +44,15 @@
     width: 90px;
     height: 97px;
     -webkit-animation: animate-explosion3 2.5s steps(47);
+    animation: animate-explosion3 2.5s steps(47);
 }
 
 @-webkit-keyframes animate-explosion3 {
+    0% {background-position: 0 0;}
+    100% {background-position: -4841px 0;}
+}
+
+@keyframes animate-explosion3 {
     0% {background-position: 0 0;}
     100% {background-position: -4841px 0;}
 }
@@ -44,9 +62,15 @@
     width: 105px;
     height: 105px;
     -webkit-animation: animate-explosion4 2.5s steps(45);
+    animation: animate-explosion4 2.5s steps(45);
 }
 
 @-webkit-keyframes animate-explosion4 {
+    0% {background-position: 0 0;}
+    100% {background-position: -5085px 0;}
+}
+
+@keyframes animate-explosion4 {
     0% {background-position: 0 0;}
     100% {background-position: -5085px 0;}
 }
@@ -56,9 +80,15 @@
     width: 91px;
     height: 91px;
     -webkit-animation: animate-explosion4 2.5s steps(54);
+    animation: animate-explosion4 2.5s steps(54);
 }
 
 @-webkit-keyframes animate-explosion5 {
+    0% {background-position: 0 0;}
+    100% {background-position: -4136px 0;}
+}
+
+@keyframes animate-explosion5 {
     0% {background-position: 0 0;}
     100% {background-position: -4136px 0;}
 }

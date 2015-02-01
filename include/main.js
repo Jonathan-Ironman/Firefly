@@ -1,7 +1,8 @@
- // Globals.
+// Globals.
 var Firefly;
-var enemies = new Array(3);
-var currentMousePos = { x: 0, y: 0 };
+var enemies = new Array(8);
+var explosions = [];
+var game = true;
 
 // Initialize game.
 $(document).ready(function () {
@@ -17,7 +18,22 @@ $(document).ready(function () {
 });
 
 function render() {
+    if (!game) return;
+
     requestAnimationFrame(render);
+
+    // Check ships vs explosions.
+    for (var e = 0; e < explosions.length; e++) {
+        for (var j = 0; j < enemies.length; j++) {
+            if (colliding(explosions[e], enemies[j]))
+                enemies[j].health--;
+        }
+        // Check player.
+        if (colliding(explosions[e], Firefly))
+            Firefly.health--;
+    }
+    // Reset explosions.
+    explosions = [];
 
     Firefly.update();
 
@@ -52,6 +68,7 @@ function (event) {
     }
 });
 
+// TODO: Temp movement untill arrow keys feel more natural
 function fireflyMouseMove(e) {
     var newX = e.clientX - Firefly.width / 2;
     newY = e.clientY - Firefly.height / 2;
@@ -61,7 +78,6 @@ function fireflyMouseMove(e) {
 
     Firefly.elem.classList.add('transitions');
 }
-
 $(document).on('click', fireflyMouseMove);
 
 // **colliding()** returns true if two passed bodies are colliding.
@@ -73,7 +89,7 @@ $(document).on('click', fireflyMouseMove);
 // 3. Bottom of `b1` is above the top of `b2`.
 // 4. Left of `b1` is to the right of the right of `b2`.
 // 5. Top of `b1` is below the bottom of `b2`.
-function isColliding(b1, b2) {
+function colliding(b1, b2) {
     return !(
       b1 === b2 ||
         b1.x + b1.width < b2.x - b2.width ||
@@ -157,12 +173,16 @@ function Player() {
     var player = new Ship({
         speed: 12,
         turnSpeed: 6,
+        health: 300,
         // Explosions baby!
         cooldownTime: 0,
         update: function () {
+            if (player.health <= 0)
+                return player.destroy();
+
             updateCoords(player);
             updateCenter(player);
-            turn(player, currentMousePos);
+            turn(player, mousePosition);
 
             var movement = false;
 
@@ -176,6 +196,8 @@ function Player() {
             if (up) { playerMove('up'); movement = true; }
             if (down) { playerMove('down'); movement = true; }
 
+            if (!movement) player.elem.classList.remove("moving");
+
             // Firing.
             if (player.cooldown < 1) {
                 if (KEYDOWN[KEYS.SPACE]) {
@@ -183,8 +205,8 @@ function Player() {
                     var p1 = pointFromAngle(player.center, player.angle - 90, offset);
                     var p2 = pointFromAngle(player.center, player.angle - 90, -offset);
 
-                    var t1 = pointFromAngle(currentMousePos, player.angle - 90, offset * 0.5);
-                    var t2 = pointFromAngle(currentMousePos, player.angle - 90, -offset * 0.5);
+                    var t1 = pointFromAngle(mousePosition, player.angle - 90, offset * 0.5);
+                    var t2 = pointFromAngle(mousePosition, player.angle - 90, -offset * 0.5);
 
                     fireMissile(p1, t1);
                     fireMissile(p2, t2);
@@ -192,9 +214,16 @@ function Player() {
                 }
             }
             else player.cooldown--;
+        },
 
-            if (!movement) player.elem.classList.remove("moving");
+        destroy: function () {
+            explode(player.center.x, player.center.y, 5);
+            player.elem.parentElement.removeChild(player.elem);
+            //Firefly = "game over";
+            game = false;
+            alert("Game over!");
         }
+
     });
 
     return player;
@@ -212,6 +241,9 @@ function Enemy() {
         },
 
         update: function () {
+            if (enemy.health <= 0)
+                return enemy.destroy();
+
             updateCoords(enemy);
             updateCenter(enemy);
             turn(enemy, Firefly.center);
@@ -228,7 +260,14 @@ function Enemy() {
                 }
             }
             else enemy.cooldown--;
+        },
+
+        destroy: function () {
+            explode(enemy.center.x, enemy.center.y, 2.5);
+            enemy.elem.parentElement.removeChild(enemy.elem);
+            enemies = enemies.filter(function notMe(el) { return el !== enemy; }, enemy);
         }
+
     });
 
     return enemy;

@@ -32,7 +32,16 @@ function explode(x, y, scale) {
 
     explosion.style.top = y - height / 2 + "px";
     explosion.style.left = x - width / 2 + "px";
-    explosion.style.transform = "scale(" + scale || 1 + ")";
+    if (scale)
+        explosion.style.transform = "scale(" + scale + ")";
+    //explosion.style.transform = "rotate(" + getRandomInt(0, 359) + "deg) scale(" + (scale || getRandomArbitary(0.8, 1.2)) + ")";
+
+    // For collision detection.
+    explosion.x = x;
+    explosion.y = y;
+    explosion.width = width / 2;
+    explosion.height = height / 2;
+    explosions.push(explosion);
 }
 
 // Bind end to explosion.    
