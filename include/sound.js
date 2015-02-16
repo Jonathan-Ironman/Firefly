@@ -1,7 +1,6 @@
-﻿var musicPlayer, speechPlayer, effectsPlayer;
+﻿//var musicPlayer, speechPlayer, effectsPlayer;
 
-var ssAudio = { // TODO: Redefiniton of Audio, might want to change name
-    // TODO: simplify Audio obj.
+var deleteMeAudio = { // TODO: replace
     togglePlayers: function (player) {
         var players;
         player ? players = [player] : players = [musicPlayer, speechPlayer, effectsPlayer];
@@ -87,4 +86,43 @@ function SoundPool(filename, volume, maxSize) {
         }
         currSound = (currSound + 1) % maxSize;
     };
+}
+
+// Audio playlist. Takes an array of filenames.
+function Playlist(playlist, volume, random) {
+    var currentTrack = random ? getRandomInt(0, playlist.length - 1) : 0;
+    var player = new Audio();
+    var that = this;
+    player.volume = volume || 0.5;
+    player.src = playlist[currentTrack];
+    
+    this.setVolume = function setVolume(volume) {
+        player.volume = volume;
+    };
+
+    this.mute = function mute(state) {
+        // State: toggle, true or false.
+        if (typeof state == "undefined")
+            player.muted = !player.muted;
+        else
+            player.muted = state;
+    };
+
+    // Plays a sound.
+    this.play = function play() {
+        player.play();
+    };
+
+    // Next track.
+    this.next = function next() {
+        if (random)
+            currentTrack = getRandomInt(0, playlist.length - 1);
+        else
+            currentTrack = (currentTrack + 1) % playlist.length;
+        player.src = playlist[currentTrack];
+        console.log(playlist[currentTrack]);
+        player.play();
+    };
+
+    player.addEventListener("ended", that.next);
 }

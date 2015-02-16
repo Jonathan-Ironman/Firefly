@@ -5,9 +5,13 @@ var explosions = [];
 var game = true;
 var laserSound = new SoundPool("sound/effects/laser.wav", 0.05, 300);
 var explosionSound = new SoundPool("sound/effects/explosion4.wav", 0.1, 300);
-var backgroundAudio = new Audio("sound/music/dust.mp3");
-backgroundAudio.loop = true;
-backgroundAudio.volume = 0.1;
+var playlist = [
+    "sound/music/ambientmain_0.ogg",
+    "sound/music/dark_fallout.ogg",
+    "sound/music/last_stand_in_space.ogg",
+    "sound/music/dust.mp3"
+];
+var backgroundAudio = new Playlist(playlist, 0.2, true);
 
 // Initialize game.
 $(document).ready(function () {
