@@ -1,11 +1,13 @@
 // Globals.
 var Firefly;
-var enemies = new Array(8);
+var enemies = new Array(13);
 var explosions = [];
 var game = true;
 
 // Initialize game.
 $(document).ready(function () {
+    //disableKeys([KEYS.F1, KEYS.F5]);
+
     Firefly = Player();
 
     for (var i = 0; i < enemies.length; i++) {
@@ -19,7 +21,7 @@ $(document).ready(function () {
 
 function render() {
     if (!game) return;
-
+    //if (!enemies.length) return alert("Win!");
     requestAnimationFrame(render);
 
     // Check ships vs explosions.
@@ -42,21 +44,6 @@ function render() {
     }
 }
 
-function playerMove(dir) {
-    var movingSpeed = Firefly.speed;
-    var hor = dir == 'left' || dir == 'right' ? true : false;
-    var inverse = dir == 'down' || dir == 'right' ? -1 : 1;
-
-    Firefly.elem.classList.add('moving');
-
-    if (hor) {
-        Firefly.elem.style.left = Firefly.elem.offsetLeft - movingSpeed * inverse + "px";
-    }
-    else {
-        Firefly.elem.style.top = Firefly.elem.offsetTop - movingSpeed * inverse + "px";
-    }
-}
-
 $(document).on('transitionend',
 function (event) {
     var $target = $(event.target);
@@ -68,17 +55,16 @@ function (event) {
     }
 });
 
-// TODO: Temp movement untill arrow keys feel more natural
-function fireflyMouseMove(e) {
-    var newX = e.clientX - Firefly.width / 2;
-    newY = e.clientY - Firefly.height / 2;
+//function fireflyMouseMove(e) {
+//    var newX = e.clientX - Firefly.width / 2;
+//    newY = e.clientY - Firefly.height / 2;
 
-    Firefly.elem.style.top = newY + "px";
-    Firefly.elem.style.left = newX + "px";
+//    Firefly.elem.style.top = newY + "px";
+//    Firefly.elem.style.left = newX + "px";
 
-    Firefly.elem.classList.add('transitions');
-}
-$(document).on('click', fireflyMouseMove);
+//    Firefly.elem.classList.add('transitions');
+//}
+//$(document).on('click', fireflyMouseMove);
 
 // **colliding()** returns true if two passed bodies are colliding.
 // The approach is to test for five situations.  If any are true,
@@ -137,17 +123,21 @@ function Ship(options) {
     this.elem.className = "ship";
     this.elem.style.visibility = "hidden";
 
-    this.health = 100;
+    this.health = 30;
     this.damage = 10;
-    this.speed = 8;
-    this.turnSpeed = 4;
+
+    this.speedX = 0;
+    this.speedY = 0;
+
+    this.acceleration = 1;
+    this.turnSpeed = 3;
     this.cooldownTime = 20;
     this.inaccuracy = 100;
 
     // Can fire.
     this.cooldown = 0;
-    this.x = 100;
-    this.y = 100;
+    this.x = window.innerWidth / 2 - 40;
+    this.y = window.innerHeight / 2 - 40;
     this.angle = 0;
 
     // Customize properties.
@@ -171,7 +161,6 @@ function Ship(options) {
 // Uh?
 function Player() {
     var player = new Ship({
-        speed: 12,
         turnSpeed: 6,
         health: 300,
         // Explosions baby!
@@ -184,23 +173,12 @@ function Player() {
             updateCenter(player);
             turn(player, mousePosition);
 
-            var movement = false;
-
-            var left = KEYDOWN[KEYS.LEFT_ARROW] || KEYDOWN[KEYS.KEY_A];
-            var right = KEYDOWN[KEYS.RIGHT_ARROW] || KEYDOWN[KEYS.KEY_D];
-            var up = KEYDOWN[KEYS.UP_ARROW] || KEYDOWN[KEYS.KEY_W];
-            var down = KEYDOWN[KEYS.DOWN_ARROW] || KEYDOWN[KEYS.KEY_S];
-
-            if (left) { playerMove('left'); movement = true; }
-            if (right) { playerMove('right'); movement = true; }
-            if (up) { playerMove('up'); movement = true; }
-            if (down) { playerMove('down'); movement = true; }
-
-            if (!movement) player.elem.classList.remove("moving");
+            shipMove(player);
+            //if (!movement) player.elem.classList.remove("moving");
 
             // Firing.
             if (player.cooldown < 1) {
-                if (KEYDOWN[KEYS.SPACE]) {
+                if (keyDown[KEYS.SPACE] || mouseDown[BUTTONS.LEFT]) {
                     var offset = player.width / 2.4;
                     var p1 = pointFromAngle(player.center, player.angle - 90, offset);
                     var p2 = pointFromAngle(player.center, player.angle - 90, -offset);
@@ -233,8 +211,8 @@ function Player() {
 function Enemy() {
     var enemy = new Ship({
         speed: 5,
-        x: getRandomInt(50, 400),
-        y: getRandomInt(50, 400),
+        x: chance(50) ? getRandomInt(50, 300) : getRandomInt(window.innerWidth - 250, window.innerWidth - 400),
+        y: chance(50) ? getRandomInt(50, 300) : getRandomInt(window.innerHeight - 250, window.innerHeight - 400),
 
         init: function () {
             enemy.elem.classList.add("enemy")
@@ -271,4 +249,37 @@ function Enemy() {
     });
 
     return enemy;
+}
+
+function shipMove(ship) {
+    // Angle 0 is X-axis, direction is in radians.
+    var direction = ship.angle * (Math.PI / 180);
+
+    // Find the direction modifiers. 
+    var forward = keyDown[KEYS.UP_ARROW] || keyDown[KEYS.KEY_W];
+    var back = keyDown[KEYS.DOWN_ARROW] || keyDown[KEYS.KEY_S];
+    var left = keyDown[KEYS.LEFT_ARROW] || keyDown[KEYS.KEY_A];
+    var right = keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D];
+
+    forward = forward ? 1 : 0;
+    back = back ? -0.4 : 0;
+    left = left ? 0.3 : 0;
+    right = right ? -0.3 : 0;
+
+    // Forward and backward.
+    ship.speedX = ship.speedX + (forward + back) * ship.acceleration * Math.cos(direction);
+    ship.speedY = ship.speedY + (forward + back) * ship.acceleration * Math.sin(direction);
+
+    // Left and right.
+    ship.speedX = ship.speedX + (left + right) * ship.acceleration * Math.cos(direction - Math.PI / 2);
+    ship.speedY = ship.speedY + (left + right) * ship.acceleration * Math.sin(direction - Math.PI / 2);
+
+    // Friction.
+    ship.speedX *= 0.99;
+    ship.speedY *= 0.99;
+
+    //console.log(ship.speedX.toFixed(2), ship.speedY.toFixed(2), ship.angle.toFixed(2), direction.toFixed(2));
+
+    ship.elem.style.left = ship.x + ship.speedX + "px";
+    ship.elem.style.top = ship.y + ship.speedY + "px";
 }
