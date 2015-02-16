@@ -1,13 +1,19 @@
 // Globals.
 var Firefly;
-var enemies = new Array(13);
+var enemies = new Array(6);
 var explosions = [];
 var game = true;
+var laserSound = new SoundPool("sound/effects/laser.wav", 0.05, 300);
+var explosionSound = new SoundPool("sound/effects/explosion4.wav", 0.1, 300);
+var backgroundAudio = new Audio("sound/music/dust.mp3");
+backgroundAudio.loop = true;
+backgroundAudio.volume = 0.1;
 
 // Initialize game.
 $(document).ready(function () {
-    //disableKeys([KEYS.F1, KEYS.F5]);
+    backgroundAudio.play();
 
+    //disableKeys([KEYS.F1, KEYS.F5]);
     Firefly = Player();
 
     for (var i = 0; i < enemies.length; i++) {
@@ -198,6 +204,7 @@ function Player() {
                     fireMissile(p1, t1);
                     fireMissile(p2, t2);
                     player.cooldown = player.cooldownTime;
+                    laserSound.play();
                 }
             }
             else player.cooldown--;
@@ -263,6 +270,7 @@ function Enemy() {
                     };
                     fireMissile(enemy.center, target);
                     enemy.cooldown = enemy.cooldownTime;
+                    laserSound.play();
                 }
             }
             else enemy.cooldown--;

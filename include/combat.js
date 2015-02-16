@@ -42,6 +42,8 @@ function explode(x, y, scale) {
     explosion.width = width / 2;
     explosion.height = height / 2;
     explosions.push(explosion);
+
+    explosionSound.play();
 }
 
 // Bind end to explosion.    
