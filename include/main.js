@@ -165,6 +165,7 @@ function Player() {
         health: 300,
         // Explosions baby!
         cooldownTime: 0,
+
         update: function () {
             if (player.health <= 0)
                 return player.destroy();
@@ -174,11 +175,12 @@ function Player() {
             turn(player, mousePosition);
 
             // Find the direction modifiers for player. 
-            var directions = {};
-            directions.forward = keyDown[KEYS.UP_ARROW] || keyDown[KEYS.KEY_W];
-            directions.back = keyDown[KEYS.DOWN_ARROW] || keyDown[KEYS.KEY_S];
-            directions.left = keyDown[KEYS.LEFT_ARROW] || keyDown[KEYS.KEY_A];
-            directions.right = keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D];
+            var directions = {
+                forward: keyDown[KEYS.UP_ARROW] || keyDown[KEYS.KEY_W],
+                back: keyDown[KEYS.DOWN_ARROW] || keyDown[KEYS.KEY_S],
+                left: keyDown[KEYS.LEFT_ARROW] || keyDown[KEYS.KEY_A],
+                right: keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D]
+            };
 
             shipMove(player, directions);
             //if (!movement) player.elem.classList.remove("moving");
@@ -236,16 +238,18 @@ function Enemy() {
             // Move out of player range
             var facing = isFacing(Firefly, enemy);
             if (facing) {
-                var directions = {};
-                directions.forward = true;
-                directions.left = facing > 0;
-                directions.right = facing < 0;
+                var directions = {
+                    forward: true,
+                    left: facing > 0,
+                    right: facing < 0
+                };
 
                 shipMove(enemy, directions);
             }
             else if (lineDistance(enemy.center, Firefly.center) < 300) {
-                var directions = {};
-                directions.back = true;
+                var directions = {
+                    back: true
+                };
 
                 shipMove(enemy, directions);
             }
