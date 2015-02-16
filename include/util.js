@@ -161,3 +161,13 @@ function getRandomInt(min, max) {
 function chance(percentage) {
     return Math.random() * 100 < percentage;
 }
+
+// Returns the angle if ship1 is facing ship2.
+function isFacing(ship1, ship2) {
+    var result = false;
+    var diff = getAngle(ship1.center, ship2.center) - ship1.angle;
+    if (Math.abs(diff) < 100)
+        result = diff;
+
+    return result;
+}

@@ -21,7 +21,6 @@ $(document).ready(function () {
 
 function render() {
     if (!game) return;
-    //if (!enemies.length) return alert("Win!");
     requestAnimationFrame(render);
 
     // Check ships vs explosions.
@@ -124,12 +123,12 @@ function Ship(options) {
     this.elem.style.visibility = "hidden";
 
     this.health = 30;
-    this.damage = 10;
+    //this.damage = 10;
 
     this.speedX = 0;
     this.speedY = 0;
 
-    this.acceleration = 1;
+    this.acceleration = 0.3;
     this.turnSpeed = 3;
     this.cooldownTime = 20;
     this.inaccuracy = 100;
@@ -161,7 +160,8 @@ function Ship(options) {
 // Uh?
 function Player() {
     var player = new Ship({
-        turnSpeed: 6,
+        acceleration: 0.8,
+        turnSpeed: 4,
         health: 300,
         // Explosions baby!
         cooldownTime: 0,
@@ -173,7 +173,14 @@ function Player() {
             updateCenter(player);
             turn(player, mousePosition);
 
-            shipMove(player);
+            // Find the direction modifiers for player. 
+            var directions = {};
+            directions.forward = keyDown[KEYS.UP_ARROW] || keyDown[KEYS.KEY_W];
+            directions.back = keyDown[KEYS.DOWN_ARROW] || keyDown[KEYS.KEY_S];
+            directions.left = keyDown[KEYS.LEFT_ARROW] || keyDown[KEYS.KEY_A];
+            directions.right = keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D];
+
+            shipMove(player, directions);
             //if (!movement) player.elem.classList.remove("moving");
 
             // Firing.
@@ -226,6 +233,23 @@ function Enemy() {
             updateCenter(enemy);
             turn(enemy, Firefly.center);
 
+            // Move out of player range
+            var facing = isFacing(Firefly, enemy);
+            if (facing) {
+                var directions = {};
+                directions.forward = true;
+                directions.left = facing > 0;
+                directions.right = facing < 0;
+
+                shipMove(enemy, directions);
+            }
+            else if (lineDistance(enemy.center, Firefly.center) < 300) {
+                var directions = {};
+                directions.back = true;
+
+                shipMove(enemy, directions);
+            }
+
             // Fire.
             if (enemy.cooldown < 1) {
                 if (chance(1)) {
@@ -244,6 +268,9 @@ function Enemy() {
             explode(enemy.center.x, enemy.center.y, 2.5);
             enemy.elem.parentElement.removeChild(enemy.elem);
             enemies = enemies.filter(function notMe(el) { return el !== enemy; }, enemy);
+
+            // Lame check.
+            if (!enemies.length) alert("Win!");
         }
 
     });
@@ -251,35 +278,31 @@ function Enemy() {
     return enemy;
 }
 
-function shipMove(ship) {
+function shipMove(ship, directions) {
     // Angle 0 is X-axis, direction is in radians.
-    var direction = ship.angle * (Math.PI / 180);
+    var angle = ship.angle * (Math.PI / 180);
 
-    // Find the direction modifiers. 
-    var forward = keyDown[KEYS.UP_ARROW] || keyDown[KEYS.KEY_W];
-    var back = keyDown[KEYS.DOWN_ARROW] || keyDown[KEYS.KEY_S];
-    var left = keyDown[KEYS.LEFT_ARROW] || keyDown[KEYS.KEY_A];
-    var right = keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D];
-
-    forward = forward ? 1 : 0;
-    back = back ? -0.4 : 0;
-    left = left ? 0.3 : 0;
-    right = right ? -0.3 : 0;
+    var forward = directions.forward ? 1 : 0;
+    var back = directions.back ? -0.4 : 0;
+    var left = directions.left ? 0.4 : 0;
+    var right = directions.right ? -0.4 : 0;
 
     // Forward and backward.
-    ship.speedX = ship.speedX + (forward + back) * ship.acceleration * Math.cos(direction);
-    ship.speedY = ship.speedY + (forward + back) * ship.acceleration * Math.sin(direction);
+    ship.speedX = ship.speedX + (forward + back) * ship.acceleration * Math.cos(angle);
+    ship.speedY = ship.speedY + (forward + back) * ship.acceleration * Math.sin(angle);
 
     // Left and right.
-    ship.speedX = ship.speedX + (left + right) * ship.acceleration * Math.cos(direction - Math.PI / 2);
-    ship.speedY = ship.speedY + (left + right) * ship.acceleration * Math.sin(direction - Math.PI / 2);
+    ship.speedX = ship.speedX + (left + right) * ship.acceleration * Math.cos(angle - Math.PI / 2);
+    ship.speedY = ship.speedY + (left + right) * ship.acceleration * Math.sin(angle - Math.PI / 2);
 
     // Friction.
-    ship.speedX *= 0.99;
-    ship.speedY *= 0.99;
+    ship.speedX *= 0.985;
+    ship.speedY *= 0.985;
 
     //console.log(ship.speedX.toFixed(2), ship.speedY.toFixed(2), ship.angle.toFixed(2), direction.toFixed(2));
 
     ship.elem.style.left = ship.x + ship.speedX + "px";
     ship.elem.style.top = ship.y + ship.speedY + "px";
+
+    //updateCenter(ship);
 }
