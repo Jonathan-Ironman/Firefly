@@ -90,12 +90,12 @@ function SoundPool(filename, volume, maxSize) {
 
 // Audio playlist. Takes an array of filenames.
 function Playlist(playlist, volume, random) {
+    var that = this;
     var currentTrack = random ? getRandomInt(0, playlist.length - 1) : 0;
     var player = new Audio();
-    var that = this;
     player.volume = volume || 0.5;
     player.src = playlist[currentTrack];
-    
+
     this.setVolume = function setVolume(volume) {
         player.volume = volume;
     };
@@ -108,10 +108,8 @@ function Playlist(playlist, volume, random) {
             player.muted = state;
     };
 
-    // Plays a sound.
-    this.play = function play() {
-        player.play();
-    };
+    this.play = function play() { player.play(); };
+    this.pause = function pause() { player.pause(); };
 
     // Next track.
     this.next = function next() {
@@ -120,9 +118,11 @@ function Playlist(playlist, volume, random) {
         else
             currentTrack = (currentTrack + 1) % playlist.length;
         player.src = playlist[currentTrack];
-        console.log(playlist[currentTrack]);
+        //console.log(playlist[currentTrack]);
         player.play();
     };
+
+    this.isPlaying = function isPlaying() { return !player.paused; };
 
     player.addEventListener("ended", that.next);
 }
