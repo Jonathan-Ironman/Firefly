@@ -16,8 +16,7 @@ document.addEventListener("keyup", function (event) {
 
 // Track mouse all the time.
 document.addEventListener('mousemove', function storeMouse(event) {
-    mousePosition.x = event.clientX;
-    mousePosition.y = event.clientY;
+    mousePosition = { x: event.clientX, y: event.clientY };
 });
 
 document.addEventListener('mousedown', function (event) {
