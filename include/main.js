@@ -1,6 +1,6 @@
 // Globals.
 var Firefly;
-var enemies = new Array(6);
+var enemies = new Array(20);
 var explosions = [];
 var game = true;
 var laserSound = new SoundPool("sound/effects/laser.wav", 0.05, 300);
@@ -13,9 +13,11 @@ var playlist = [
 ];
 var backgroundAudio = new Playlist(playlist, 0.2, true);
 
+var paint = [];
+
 // Initialize game.
 $(document).ready(function () {
-    backgroundAudio.play();
+    //backgroundAudio.play();
 
     //disableKeys([KEYS.F1, KEYS.F5]);
     Firefly = Player();
@@ -172,7 +174,7 @@ function Player() {
     var player = new Ship({
         acceleration: 0.8,
         turnSpeed: 4,
-        health: 300,
+        health: 1000,
         // Explosions baby!
         cooldownTime: 0,
 
@@ -212,6 +214,41 @@ function Player() {
                 }
             }
             else player.cooldown--;
+
+            // PAINT MADNESS.
+            // Record.
+            if (keyDown[KEYS.KEY_Q]) {
+                paint.push(mousePosition);
+            }
+            // Shoot triple path.
+            if (keyDown[KEYS.KEY_E]) {
+                if (paint.length) {
+                    fireMissile(player.center, paint[0]);
+                    fireMissile(player.center, paint[~~(paint.length / 5)]);
+                    fireMissile(player.center, paint[~~(paint.length / 5 * 2)]);
+                    fireMissile(player.center, paint[~~(paint.length / 5 * 3)]);
+                    fireMissile(player.center, paint[~~(paint.length / 5 * 4)]);
+                    laserSound.play();
+                    //paint = paint.splice(1);
+                    paint.push(paint.shift());
+                }
+            }
+            // Full Kamikaze.
+            if (keyDown[KEYS.KEY_F]) {
+                for (var i = 0; i < paint.length; i++) {
+                    fireMissile(player.center, paint[i]);
+                    laserSound.play();
+                }
+            }
+            // Clear last. (Don't work well with Array.shift)
+            if (keyDown[KEYS.KEY_V]) {
+                paint.pop();
+            }
+            // Clear all.
+            if (keyDown[KEYS.KEY_R]) {
+                paint = [];
+            }
+
         },
 
         destroy: function () {
