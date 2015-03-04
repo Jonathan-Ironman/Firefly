@@ -170,3 +170,48 @@ function isFacing(ship1, ship2) {
 
     return result;
 }
+
+// http://gamedev.stackexchange.com/a/26022/36040
+function isIntersecting1(Point1, Point2, Point3, Point4) {
+    var denominator = ((Point2.x - Point1.x) * (Point4.y - Point3.y)) - ((Point2.y - Point1.y) * (Point4.x - Point3.x));
+    var numerator1 = ((Point1.y - Point3.y) * (Point4.x - Point3.x)) - ((Point1.x - Point3.x) * (Point4.y - Point3.y));
+    var numerator2 = ((Point1.y - Point3.y) * (Point2.x - Point1.x)) - ((Point1.x - Point3.x) * (Point2.y - Point1.y));
+
+    // Detect coincident lines (has a problem, read below)
+    if (denominator == 0)
+        return numerator1 == 0 && numerator2 == 0;
+
+    var r = numerator1 / denominator;
+    var s = numerator2 / denominator;
+
+    return (r >= 0 && r <= 1) && (s >= 0 && s <= 1);
+}
+
+// Adapted from: http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/1968345#1968345
+function line_intersects(p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y) {
+
+    var s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1_x - p0_x;
+    s1_y = p1_y - p0_y;
+    s2_x = p3_x - p2_x;
+    s2_y = p3_y - p2_y;
+
+    var s, t;
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+        // Collision detected
+        return 1;
+    }
+
+    return 0; // No collision
+}
+
+// http://stackoverflow.com/a/16725715/2407212
+function CCW(p1, p2, p3) {
+    return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x);
+}
+function isIntersecting(p1, p2, p3, p4) {
+    return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
+}

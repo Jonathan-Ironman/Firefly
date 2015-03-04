@@ -48,6 +48,25 @@ function render() {
     // Reset explosions.
     explosions = [];
 
+    // Lasers!
+    if (mouseDown[BUTTONS.LEFT]) {
+        for (var j = 0; j < enemies.length; j++) {
+            var p1 = { x: enemies[j].x, y: enemies[j].y };
+            var p2 = { x: enemies[j].x + enemies[j].width, y: enemies[j].y };
+            var p3 = { x: enemies[j].x + enemies[j].width, y: enemies[j].y + enemies[j].height };
+            var p4 = { x: enemies[j].x, y: enemies[j].y + enemies[j].height };
+
+            if (isIntersecting(Firefly.center, mousePosition, p1, p2) ||
+                isIntersecting(Firefly.center, mousePosition, p2, p3) ||
+                isIntersecting(Firefly.center, mousePosition, p3, p4) ||
+                isIntersecting(Firefly.center, mousePosition, p4, p1)
+                ) {
+                enemies[j].elem.style.backgroundColor = "red";
+            } else
+                enemies[j].elem.style.backgroundColor = "";
+        }
+    }
+
     Firefly.update();
 
     for (var i = 0; i < enemies.length; i++) {
@@ -213,7 +232,8 @@ function Player() {
                     laserSound.play();
                 }
             }
-            else player.cooldown--;
+            else
+                player.cooldown--;
 
             // PAINT MADNESS.
             // Record.
