@@ -108,7 +108,10 @@ function Playlist(playlist, volume, random) {
             player.muted = state;
     };
 
-    this.play = function play() { player.play(); };
+    this.play = function play() {
+
+        player.play();
+    };
     this.pause = function pause() { player.pause(); };
 
     // Next track.

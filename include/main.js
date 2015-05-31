@@ -13,8 +13,6 @@ var playlist = [
 ];
 var backgroundAudio = new Playlist(playlist, 0.2, true);
 
-var paint = [];
-
 // Initialize game.
 $(document).ready(function () {
     //backgroundAudio.play();
@@ -47,25 +45,6 @@ function render() {
     }
     // Reset explosions.
     explosions = [];
-
-    // Lasers!
-    if (mouseDown[BUTTONS.LEFT]) {
-        for (var j = 0; j < enemies.length; j++) {
-            var p1 = { x: enemies[j].x, y: enemies[j].y };
-            var p2 = { x: enemies[j].x + enemies[j].width, y: enemies[j].y };
-            var p3 = { x: enemies[j].x + enemies[j].width, y: enemies[j].y + enemies[j].height };
-            var p4 = { x: enemies[j].x, y: enemies[j].y + enemies[j].height };
-
-            if (isIntersecting(Firefly.center, mousePosition, p1, p2) ||
-                isIntersecting(Firefly.center, mousePosition, p2, p3) ||
-                isIntersecting(Firefly.center, mousePosition, p3, p4) ||
-                isIntersecting(Firefly.center, mousePosition, p4, p1)
-                ) {
-                enemies[j].elem.style.backgroundColor = "red";
-            } else
-                enemies[j].elem.style.backgroundColor = "";
-        }
-    }
 
     Firefly.update();
 
@@ -218,7 +197,7 @@ function Player() {
 
             // Firing.
             if (player.cooldown < 1) {
-                if (keyDown[KEYS.SPACE] || mouseDown[BUTTONS.LEFT]) {
+                if (keyDown[KEYS.SPACE]) {
                     var offset = player.width / 2.4;
                     var p1 = pointFromAngle(player.center, player.angle - 90, offset);
                     var p2 = pointFromAngle(player.center, player.angle - 90, -offset);
@@ -235,40 +214,17 @@ function Player() {
             else
                 player.cooldown--;
 
-            // PAINT MADNESS.
-            // Record.
-            if (keyDown[KEYS.KEY_Q]) {
-                paint.push(mousePosition);
+            // Lasers!
+            if (mouseDown[BUTTONS.LEFT]) {
+                fireGun(player, mousePosition);
+                player.elem.classList.add("isFiring");
             }
-            // Shoot triple path.
-            if (keyDown[KEYS.KEY_E]) {
-                if (paint.length) {
-                    fireMissile(player.center, paint[0]);
-                    fireMissile(player.center, paint[~~(paint.length / 5)]);
-                    fireMissile(player.center, paint[~~(paint.length / 5 * 2)]);
-                    fireMissile(player.center, paint[~~(paint.length / 5 * 3)]);
-                    fireMissile(player.center, paint[~~(paint.length / 5 * 4)]);
-                    laserSound.play();
-                    //paint = paint.splice(1);
-                    paint.push(paint.shift());
-                }
-            }
-            // Full Kamikaze.
-            if (keyDown[KEYS.KEY_F]) {
-                for (var i = 0; i < paint.length; i++) {
-                    fireMissile(player.center, paint[i]);
-                    laserSound.play();
-                }
-            }
-            // Clear last. (Don't work well with Array.shift)
-            if (keyDown[KEYS.KEY_V]) {
-                paint.pop();
-            }
-            // Clear all.
-            if (keyDown[KEYS.KEY_R]) {
-                paint = [];
+            else {
+                player.elem.classList.remove("isFiring");
             }
 
+            // Do paint madness.
+            paintMadness();
         },
 
         destroy: function () {
@@ -339,7 +295,8 @@ function Enemy() {
 
         destroy: function () {
             explode(enemy.center.x, enemy.center.y, 2.5);
-            enemy.elem.parentElement.removeChild(enemy.elem);
+            enemy.elem.parentNode.removeChild(enemy.elem);
+            // Remove enemy from enemies list.
             enemies = enemies.filter(function notMe(el) { return el !== enemy; }, enemy);
 
             // Lame check.

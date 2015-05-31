@@ -9,8 +9,16 @@
     transition-timing-function: ease-out;
 }
 
+.isFiring {
+    background-image: url(../images/objects/GunFlare.png), url(../images/objects/Firefly.png);
+}
+
 .enemy {
     background-image: url(../images/objects/enemy1.png);
+}
+
+.enemy.isFiring {
+    background-image: url(../images/objects/GunFlare.png), url(../images/objects/enemy1.png);
 }
 
 .transitions {

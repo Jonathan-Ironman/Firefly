@@ -1,4 +1,24 @@
-﻿function fireMissile(p1, p2) {
+﻿// TODO only hit first target.
+function fireGun(ship, aimpoint) {
+    var angle = getAngle(ship.center, aimpoint);
+    // Long gun range.
+    var endpoint = pointFromAngle(ship.center, angle, 10000);
+
+    for (var i = 0; i < enemies.length; i++) {
+        // Check if bullet line intersects the enemy outline.
+        if (lineIntersectsShip(ship.center, endpoint, enemies[i])) {
+            enemies[i].elem.style.backgroundColor = "red";
+            enemies[i].health--;
+        }
+        // todo: only is cleared when firing!
+        else
+            enemies[i].elem.style.backgroundColor = "";
+    }
+
+    laserSound.play();
+}
+
+function fireMissile(p1, p2) {
     var targetX = p2.x,
         targetY = p2.y,
         missileStartX = p1.x,
@@ -55,9 +75,9 @@ function (event) {
         //console.log("Missile: " + event.type + " " + event.timeStamp);
         //alert("KILL KILL!");
         explode(
-         $target.offset().left - $target.width() / 2,
-         $target.offset().top - $target.height() / 2
-            );
+          $target.offset().left - $target.width() / 2,
+          $target.offset().top - $target.height() / 2
+        );
         $target.remove();
     }
 });
@@ -73,3 +93,40 @@ function (event) {
         //alert("Boom!");
     }
 });
+
+var paint = [];
+function paintMadness() {
+    // PAINT MADNESS.
+    // Record.
+    if (keyDown[KEYS.KEY_Q]) {
+        paint.push(mousePosition);
+    }
+    // Shoot path.
+    if (keyDown[KEYS.KEY_E]) {
+        if (paint.length) {
+            fireMissile(player.center, paint[0]);
+            fireMissile(player.center, paint[~~(paint.length / 5)]);
+            fireMissile(player.center, paint[~~(paint.length / 5 * 2)]);
+            fireMissile(player.center, paint[~~(paint.length / 5 * 3)]);
+            fireMissile(player.center, paint[~~(paint.length / 5 * 4)]);
+            laserSound.play();
+            //paint = paint.splice(1);
+            paint.push(paint.shift());
+        }
+    }
+    // Full Kamikaze.
+    if (keyDown[KEYS.KEY_F]) {
+        for (var i = 0; i < paint.length; i++) {
+            fireMissile(player.center, paint[i]);
+            laserSound.play();
+        }
+    }
+    // Clear last. (Don't work well with Array.shift)
+    if (keyDown[KEYS.KEY_V]) {
+        paint.pop();
+    }
+    // Clear all.
+    if (keyDown[KEYS.KEY_R]) {
+        paint = [];
+    }
+}

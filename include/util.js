@@ -24,6 +24,7 @@ document.addEventListener('mousedown', function (event) {
     ++mouseDownCount;
     checkMouseButtons();
 });
+
 document.addEventListener('mouseup', function (event) {
     mouseDown[event.button] = false;
     --mouseDownCount;
@@ -212,6 +213,21 @@ function line_intersects(p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y) {
 function CCW(p1, p2, p3) {
     return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x);
 }
+
 function isIntersecting(p1, p2, p3, p4) {
     return (CCW(p1, p3, p4) != CCW(p2, p3, p4)) && (CCW(p1, p2, p3) != CCW(p1, p2, p4));
+}
+
+function lineIntersectsShip(startpoint, endpoint, ship) {
+    // Corners.
+    var p1 = { x: ship.x, y: ship.y };
+    var p2 = { x: ship.x + ship.width, y: ship.y };
+    var p3 = { x: ship.x + ship.width, y: ship.y + ship.height };
+    var p4 = { x: ship.x, y: ship.y + ship.height };
+
+    // Check if bullet line intersects the ship outline.
+    return isIntersecting(startpoint, endpoint, p1, p2) ||
+        isIntersecting(startpoint, endpoint, p2, p3) ||
+        isIntersecting(startpoint, endpoint, p3, p4) ||
+        isIntersecting(startpoint, endpoint, p4, p1);
 }
