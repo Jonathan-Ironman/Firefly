@@ -7,12 +7,14 @@ function fireGun(ship, aimpoint) {
     for (var i = 0; i < enemies.length; i++) {
         // Check if bullet line intersects the enemy outline.
         if (lineIntersectsShip(ship.center, endpoint, enemies[i])) {
-            enemies[i].elem.style.backgroundColor = "red";
+            enemies[i].status.takingFire = true;
+            //enemies[i].elem.style.backgroundColor = "red";
             enemies[i].health--;
         }
         // todo: only is cleared when firing!
         else
-            enemies[i].elem.style.backgroundColor = "";
+            //enemies[i].elem.style.backgroundColor = "";
+            enemies[i].status.takingFire = false;
     }
 
     laserSound.play();

@@ -1,9 +1,6 @@
 html {
     height: 100%;
     width: 100%;
-    background-image: url("../images/bg.jpg");
-    background-size: cover;
-    background-position: 50% 50%;
     -webkit-user-select: none;
     user-select: none;
     overflow: hidden;
@@ -19,17 +16,16 @@ body {
     color: white;
 }
 
-.resize {
-    cursor: url(../images/cursor/sizeall.cur), nesw-resize;
+#canvas {
+    width: 100%;
+    height: 100%;
+    /*background-image: url("../images/bg.jpg");
+    background-size: cover;
+    background-position: 50% 50%;*/
 }
 
-#container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    margin: 0;
+.resize {
+    cursor: url(../images/cursor/sizeall.cur), nesw-resize;
 }
 
 .alert {

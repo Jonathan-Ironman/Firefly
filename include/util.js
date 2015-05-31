@@ -125,7 +125,7 @@ function warn(message, duration) {
 }
 
 window.onerror = function errorHandler(errorMsg, url, lineNumber) {
-    debugger;
+    //debugger;
     return alert(errorMsg, url, 4000);
 };
 

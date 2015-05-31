@@ -12,26 +12,47 @@ var playlist = [
     "sound/music/dust.mp3"
 ];
 var backgroundAudio = new Playlist(playlist, 0.2, true);
+var canvas;
 
 // Initialize game.
 $(document).ready(function () {
     //backgroundAudio.play();
 
     //disableKeys([KEYS.F1, KEYS.F5]);
-    Firefly = Player();
+
+    canvas = document.getElementById("canvas");
+    canvas.ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    var img = new Image();
+    img.src = "images/bg.jpg";
+
+    canvas.bg = img;
+
+    Firefly = Player(canvas);
 
     for (var i = 0; i < enemies.length; i++) {
-        enemies[i] = Enemy();
-        enemies[i].init();
+        enemies[i] = Enemy(canvas);
+        //enemies[i].init();
     }
 
     // Delay start till ship ready.
     window.setTimeout(render, 50);
 });
 
+window.onresize = function() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
 function render() {
     if (!game) return;
     requestAnimationFrame(render);
+
+    canvas.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.ctx.drawImage(canvas.bg, 0, 0)
 
     // Check ships vs explosions.
     for (var e = 0; e < explosions.length; e++) {
@@ -96,10 +117,10 @@ function colliding(b1, b2) {
 
 
 // Set coords.
-function updateCoords(obj) {
-    obj.x = obj.elem.offsetLeft;
-    obj.y = obj.elem.offsetTop;
-}
+//function updateCoords(obj) {
+//    obj.x = obj.elem.offsetLeft;
+//    obj.y = obj.elem.offsetTop;
+//}
 
 // Set center.
 function updateCenter(obj) {
@@ -123,17 +144,19 @@ function turn(ship, point) {
     }
 
     // Set ship direction.
-    ship.elem.style.transform = 'rotate(' + (ship.angle + 90) + 'deg)';
+    //ship.elem.style.transform = 'rotate(' + (ship.angle + 90) + 'deg)';
 }
 
 // Ship constructor.
-function Ship(options) {
-    this.elem = document.createElement("div");
-    this.elem.className = "ship";
-    this.elem.style.visibility = "hidden";
+function Ship(canvas, options) {
+    //this.elem = document.createElement("div");
+    //this.elem.className = "ship";
+    //this.elem.style.visibility = "hidden";
 
     this.health = 30;
     //this.damage = 10;
+
+    this.status = {};
 
     this.speedX = 0;
     this.speedY = 0;
@@ -149,39 +172,66 @@ function Ship(options) {
     this.y = window.innerHeight / 2 - 40;
     this.angle = 0;
 
+    this.width = 50;
+    this.height = 50;
+
     // Customize properties.
     Object.extend(this, options);
 
+    this.center = {
+        x: this.x + this.width / 2,
+        y: this.y + this.height / 2
+    };
+
+    var img = new Image();
+    img.src = this.imageSrc;
+
+    var isFiring = new Image();
+    isFiring.src = "images/objects/GunFlare.png";
+
+    this.draw = function draw() {
+        //img.onload = function () { ctx.drawImage(img, 0, 0); };
+        drawRotated(canvas, img, that);
+
+        if (that.status.isFiring) {
+            drawRotated(canvas, isFiring, that);
+        }
+    };
+
     // Add to document and measure it.
     var that = this;
-    document.body.appendChild(this.elem);
-    window.setTimeout(function () {
-        that.width = that.elem.offsetWidth;
-        that.height = that.elem.offsetHeight;
+
+    //document.body.appendChild(this.elem);
+
+    img.onload = function () {
+        that.width = img.width;
+        that.height = img.height;
         that.center = {
             x: that.x + that.width / 2,
             y: that.y + that.height / 2
         };
         // Position and remove visibility: hidden.
-        that.elem.style.cssText = "left: " + that.x + "px; top: " + that.y + "px;";
-    }, 10);
+        //that.elem.style.cssText = "left: " + that.x + "px; top: " + that.y + "px;";
+        //debugger;
+    };
 }
 
 // Uh?
-function Player() {
-    var player = new Ship({
+function Player(canvas) {
+    var player = new Ship(canvas, {
         acceleration: 0.8,
         turnSpeed: 4,
         health: 1000,
         // Explosions baby!
         cooldownTime: 0,
+        imageSrc: "images/objects/Firefly.png",
 
         update: function () {
             if (player.health <= 0)
                 return player.destroy();
 
-            updateCoords(player);
-            updateCenter(player);
+            //updateCoords(player);
+            //updateCenter(player);
             turn(player, mousePosition);
 
             // Find the direction modifiers for player. 
@@ -217,19 +267,25 @@ function Player() {
             // Lasers!
             if (mouseDown[BUTTONS.LEFT]) {
                 fireGun(player, mousePosition);
-                player.elem.classList.add("isFiring");
+                //player.elem.classList.add("isFiring");
+                player.status.isFiring = true;
             }
             else {
-                player.elem.classList.remove("isFiring");
+                //player.elem.classList.remove("isFiring");
+                player.status.isFiring = false;
             }
 
             // Do paint madness.
-            paintMadness();
+            //paintMadness();
+
+            player.draw();
         },
 
         destroy: function () {
             explode(player.center.x, player.center.y, 5);
-            player.elem.parentElement.removeChild(player.elem);
+            //player.elem.parentElement.removeChild(player.elem);
+
+            //game.remove(player);
             //Firefly = "game over";
             game = false;
             alert("Game over!");
@@ -241,22 +297,23 @@ function Player() {
 }
 
 // Uh?
-function Enemy() {
-    var enemy = new Ship({
+function Enemy(canvas) {
+    var enemy = new Ship(canvas, {
         speed: 5,
-        x: chance(50) ? getRandomInt(50, 300) : getRandomInt(window.innerWidth - 250, window.innerWidth - 400),
-        y: chance(50) ? getRandomInt(50, 300) : getRandomInt(window.innerHeight - 250, window.innerHeight - 400),
+        x: chance(50) ? getRandomInt(50, 300) : getRandomInt(canvas.width - 250, canvas.width - 400),
+        y: chance(50) ? getRandomInt(50, 300) : getRandomInt(canvas.height - 250, canvas.height - 400),
+        imageSrc: "images/objects/enemy1.png",
 
-        init: function () {
-            enemy.elem.classList.add("enemy")
-        },
+        //init: function () {
+        //    enemy.elem.classList.add("enemy")
+        //},
 
         update: function () {
             if (enemy.health <= 0)
                 return enemy.destroy();
 
-            updateCoords(enemy);
-            updateCenter(enemy);
+            //updateCoords(enemy);
+            //updateCenter(enemy);
             turn(enemy, Firefly.center);
 
             // Move out of player range
@@ -287,16 +344,25 @@ function Enemy() {
                     };
                     fireMissile(enemy.center, target);
                     enemy.cooldown = enemy.cooldownTime;
+                    // hardly visible, needs to be more frames.
+                    enemy.status.isFiring = true;
                     laserSound.play();
                 }
             }
-            else enemy.cooldown--;
+            else {
+                enemy.status.isFiring = false;
+                enemy.cooldown--;
+            }
+
+            enemy.draw();
         },
 
         destroy: function () {
             explode(enemy.center.x, enemy.center.y, 2.5);
-            enemy.elem.parentNode.removeChild(enemy.elem);
+
+            //enemy.elem.parentNode.removeChild(enemy.elem);
             // Remove enemy from enemies list.
+            //game.remove(enemy);
             enemies = enemies.filter(function notMe(el) { return el !== enemy; }, enemy);
 
             // Lame check.
@@ -331,8 +397,10 @@ function shipMove(ship, directions) {
 
     //console.log(ship.speedX.toFixed(2), ship.speedY.toFixed(2), ship.angle.toFixed(2), direction.toFixed(2));
 
-    ship.elem.style.left = ship.x + ship.speedX + "px";
-    ship.elem.style.top = ship.y + ship.speedY + "px";
+    ship.x = ship.x + ship.speedX;
+    ship.y = ship.y + ship.speedY;
 
-    //updateCenter(ship);
+    //debugger;
+
+    updateCenter(ship);
 }
