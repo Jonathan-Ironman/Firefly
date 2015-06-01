@@ -1,3 +1,4 @@
 *.pubxml
 *.publishproj
 App_Data
+node_modules
