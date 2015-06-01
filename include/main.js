@@ -26,10 +26,13 @@ $(document).ready(function () {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var img = new Image();
-    img.src = "images/bg.jpg";
+    window.onresize = function () {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
 
-    canvas.bg = img;
+    canvas.bg = new Image();
+    canvas.bg.src = "images/bg.jpg";
 
     Firefly = Player(canvas);
 
@@ -42,26 +45,21 @@ $(document).ready(function () {
     window.setTimeout(render, 50);
 });
 
-window.onresize = function() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
 function render() {
     if (!game) return;
     requestAnimationFrame(render);
 
     canvas.ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.ctx.drawImage(canvas.bg, 0, 0)
+    canvas.ctx.drawImage(canvas.bg, 0, 0);
 
     // Check ships vs explosions.
     for (var e = 0; e < explosions.length; e++) {
         for (var j = 0; j < enemies.length; j++) {
-            if (colliding(explosions[e], enemies[j]))
+            if (isColliding(explosions[e], enemies[j]))
                 enemies[j].health--;
         }
         // Check player.
-        if (colliding(explosions[e], Firefly))
+        if (isColliding(explosions[e], Firefly))
             Firefly.health--;
     }
     // Reset explosions.
@@ -74,29 +72,7 @@ function render() {
     }
 }
 
-$(document).on('transitionend',
-function (event) {
-    var $target = $(event.target);
-
-    // Firefly.
-    if ($target.is(Firefly.elem) && event.originalEvent.propertyName === 'top') { // Keep from firing for each attr.
-        //console.log("Firefly: " + event.type + " " + new Date().getTime());
-        Firefly.elem.classList.remove('transitions');
-    }
-});
-
-//function fireflyMouseMove(e) {
-//    var newX = e.clientX - Firefly.width / 2;
-//    newY = e.clientY - Firefly.height / 2;
-
-//    Firefly.elem.style.top = newY + "px";
-//    Firefly.elem.style.left = newX + "px";
-
-//    Firefly.elem.classList.add('transitions');
-//}
-//$(document).on('click', fireflyMouseMove);
-
-// **colliding()** returns true if two passed bodies are colliding.
+// **isColliding()** returns true if two passed bodies are colliding.
 // The approach is to test for five situations.  If any are true,
 // the bodies are definitely not colliding.  If none of them
 // are true, the bodies are colliding.
@@ -105,7 +81,7 @@ function (event) {
 // 3. Bottom of `b1` is above the top of `b2`.
 // 4. Left of `b1` is to the right of the right of `b2`.
 // 5. Top of `b1` is below the bottom of `b2`.
-function colliding(b1, b2) {
+function isColliding(b1, b2) {
     return !(
       b1 === b2 ||
         b1.x + b1.width < b2.x - b2.width ||
@@ -115,43 +91,9 @@ function colliding(b1, b2) {
     );
 }
 
-
-// Set coords.
-//function updateCoords(obj) {
-//    obj.x = obj.elem.offsetLeft;
-//    obj.y = obj.elem.offsetTop;
-//}
-
-// Set center.
-function updateCenter(obj) {
-    obj.center.x = obj.x + obj.width / 2;
-    obj.center.y = obj.y + obj.height / 2;
-}
-
-function turn(ship, point) {
-    // Find ship angle.
-    var targetAngle = getAngle(ship.center, point);
-    var turnDegrees = mod(targetAngle - ship.angle + 180, 360) - 180;
-
-    if (turnDegrees > -4 && turnDegrees < 4) {
-        ship.angle = targetAngle;
-    }
-    else if (turnDegrees < 0) {
-        ship.angle -= ship.turnSpeed;
-    }
-    else {
-        ship.angle += ship.turnSpeed;
-    }
-
-    // Set ship direction.
-    //ship.elem.style.transform = 'rotate(' + (ship.angle + 90) + 'deg)';
-}
-
 // Ship constructor.
 function Ship(canvas, options) {
-    //this.elem = document.createElement("div");
-    //this.elem.className = "ship";
-    //this.elem.style.visibility = "hidden";
+    var that = this;
 
     this.health = 30;
     //this.damage = 10;
@@ -175,6 +117,9 @@ function Ship(canvas, options) {
     this.width = 50;
     this.height = 50;
 
+    var fireImg = new Image();
+    fireImg.src = "images/objects/GunFlare.png";
+
     // Customize properties.
     Object.extend(this, options);
 
@@ -183,26 +128,11 @@ function Ship(canvas, options) {
         y: this.y + this.height / 2
     };
 
+    // Set ship image.
     var img = new Image();
     img.src = this.imageSrc;
 
-    var isFiring = new Image();
-    isFiring.src = "images/objects/GunFlare.png";
-
-    this.draw = function draw() {
-        //img.onload = function () { ctx.drawImage(img, 0, 0); };
-        drawRotated(canvas, img, that);
-
-        if (that.status.isFiring) {
-            drawRotated(canvas, isFiring, that);
-        }
-    };
-
-    // Add to document and measure it.
-    var that = this;
-
-    //document.body.appendChild(this.elem);
-
+    // Measure it.
     img.onload = function () {
         that.width = img.width;
         that.height = img.height;
@@ -210,9 +140,101 @@ function Ship(canvas, options) {
             x: that.x + that.width / 2,
             y: that.y + that.height / 2
         };
-        // Position and remove visibility: hidden.
-        //that.elem.style.cssText = "left: " + that.x + "px; top: " + that.y + "px;";
-        //debugger;
+    };
+
+    this.draw = function draw() {
+        this.drawRotated(canvas, img);
+
+        if (this.status.isFiring) {
+            this.drawRotated(canvas, fireImg);
+        }
+    };
+
+    this.drawRotated = function drawRotated(canvas, image) {
+        var x = this.center.x;
+        var y = this.center.y;
+        var context = canvas.ctx;
+        var degrees = this.angle + 90;
+        var angleInRadians = degrees * Math.PI / 180;
+
+        context.translate(x, y);
+        //context.rotate(angleInRadians);
+        context.rotate(angleInRadians);
+        context.drawImage(image, -this.width / 2, -this.height / 2);
+        context.rotate(-angleInRadians);
+        //context.rotate(-angleInRadians);
+        context.translate(-x, -y);
+    };
+
+    // Set center.
+    this.updateCenter = function updateCenter() {
+        this.center.x = this.x + this.width / 2;
+        this.center.y = this.y + this.height / 2;
+    };
+
+    // Set the ships angle.
+    this.turn = function turn(point) {
+        // Find ship angle.
+        var targetAngle = getAngle(this.center, point);
+        var turnDegrees = mod(targetAngle - this.angle + 180, 360) - 180;
+
+        if (turnDegrees > -4 && turnDegrees < 4) {
+            this.angle = targetAngle;
+        }
+        else if (turnDegrees < 0) {
+            this.angle -= this.turnSpeed;
+        }
+        else {
+            this.angle += this.turnSpeed;
+        }
+    };
+
+    // TODO only hit first target.
+    this.fireGun = function fireGun() {
+        // Long gun range.
+        var endpoint = pointFromAngle(this.center, this.angle, 10000);
+
+        for (var i = 0; i < enemies.length; i++) {
+            // Check if bullet line intersects the enemy outline.
+            if (lineIntersectsShip(this.center, endpoint, enemies[i])) {
+                enemies[i].status.takingFire = true;
+                //enemies[i].elem.style.backgroundColor = "red";
+                enemies[i].health--;
+            }
+                // todo: only is cleared when firing!
+            else
+                //enemies[i].elem.style.backgroundColor = "";
+                enemies[i].status.takingFire = false;
+        }
+
+        laserSound.play();
+    };
+
+    this.shipMove = function shipMove(directions) {
+        // Angle 0 is X-axis, direction is in radians.
+        var angle = this.angle * (Math.PI / 180);
+
+        var forward = directions.forward ? 1 : 0;
+        var back = directions.back ? -0.4 : 0;
+        var left = directions.left ? 0.4 : 0;
+        var right = directions.right ? -0.4 : 0;
+
+        // Forward and backward.
+        this.speedX = this.speedX + (forward + back) * this.acceleration * Math.cos(angle);
+        this.speedY = this.speedY + (forward + back) * this.acceleration * Math.sin(angle);
+
+        // Left and right.
+        this.speedX = this.speedX + (left + right) * this.acceleration * Math.cos(angle - Math.PI / 2);
+        this.speedY = this.speedY + (left + right) * this.acceleration * Math.sin(angle - Math.PI / 2);
+
+        // Friction.
+        this.speedX *= 0.985;
+        this.speedY *= 0.985;
+
+        this.x = this.x + this.speedX;
+        this.y = this.y + this.speedY;
+
+        this.updateCenter();
     };
 }
 
@@ -227,12 +249,10 @@ function Player(canvas) {
         imageSrc: "images/objects/Firefly.png",
 
         update: function () {
-            if (player.health <= 0)
-                return player.destroy();
+            if (this.health <= 0)
+                return this.destroy();
 
-            //updateCoords(player);
-            //updateCenter(player);
-            turn(player, mousePosition);
+            this.turn(mousePosition);
 
             // Find the direction modifiers for player. 
             var directions = {
@@ -242,50 +262,48 @@ function Player(canvas) {
                 right: keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D]
             };
 
-            shipMove(player, directions);
-            //if (!movement) player.elem.classList.remove("moving");
+            this.shipMove(directions);
+            //if (!movement) this.elem.classList.remove("moving");
 
             // Firing.
-            if (player.cooldown < 1) {
+            if (this.cooldown < 1) {
                 if (keyDown[KEYS.SPACE]) {
-                    var offset = player.width / 2.4;
-                    var p1 = pointFromAngle(player.center, player.angle - 90, offset);
-                    var p2 = pointFromAngle(player.center, player.angle - 90, -offset);
+                    var offset = this.width / 2.4;
+                    var p1 = pointFromAngle(this.center, this.angle - 90, offset);
+                    var p2 = pointFromAngle(this.center, this.angle - 90, -offset);
 
-                    var t1 = pointFromAngle(mousePosition, player.angle - 90, offset * 0.5);
-                    var t2 = pointFromAngle(mousePosition, player.angle - 90, -offset * 0.5);
+                    var t1 = pointFromAngle(mousePosition, this.angle - 90, offset * 0.5);
+                    var t2 = pointFromAngle(mousePosition, this.angle - 90, -offset * 0.5);
 
                     fireMissile(p1, t1);
                     fireMissile(p2, t2);
-                    player.cooldown = player.cooldownTime;
+                    this.cooldown = this.cooldownTime;
                     laserSound.play();
                 }
             }
             else
-                player.cooldown--;
+                this.cooldown--;
 
             // Lasers!
             if (mouseDown[BUTTONS.LEFT]) {
-                fireGun(player, mousePosition);
-                //player.elem.classList.add("isFiring");
-                player.status.isFiring = true;
+                this.fireGun();
+                this.status.isFiring = true;
             }
             else {
-                //player.elem.classList.remove("isFiring");
-                player.status.isFiring = false;
+                this.status.isFiring = false;
             }
 
             // Do paint madness.
             //paintMadness();
 
-            player.draw();
+            this.draw();
         },
 
         destroy: function () {
-            explode(player.center.x, player.center.y, 5);
-            //player.elem.parentElement.removeChild(player.elem);
+            explode(this.center.x, this.center.y, 5);
+            //this.elem.parentElement.removeChild(this.elem);
 
-            //game.remove(player);
+            //game.remove(this);
             //Firefly = "game over";
             game = false;
             alert("Game over!");
@@ -309,15 +327,13 @@ function Enemy(canvas) {
         //},
 
         update: function () {
-            if (enemy.health <= 0)
-                return enemy.destroy();
+            if (this.health <= 0)
+                return this.destroy();
 
-            //updateCoords(enemy);
-            //updateCenter(enemy);
-            turn(enemy, Firefly.center);
+            this.turn(Firefly.center);
 
             // Move out of player range
-            var facing = isFacing(Firefly, enemy);
+            var facing = isFacing(Firefly, this);
             if (facing) {
                 var directions = {
                     forward: true,
@@ -325,45 +341,46 @@ function Enemy(canvas) {
                     right: facing < 0
                 };
 
-                shipMove(enemy, directions);
+                this.shipMove(directions);
             }
-            else if (lineDistance(enemy.center, Firefly.center) < 300) {
+                // Move closer.
+            else if (lineDistance(this.center, Firefly.center) < 300) {
                 var directions = {
                     back: true
                 };
 
-                shipMove(enemy, directions);
+                this.shipMove(directions);
             }
 
             // Fire.
-            if (enemy.cooldown < 1) {
+            if (this.cooldown < 1) {
                 if (chance(1)) {
                     var target = {
-                        x: Firefly.center.x + getRandomInt(-enemy.inaccuracy, enemy.inaccuracy),
-                        y: Firefly.center.y + getRandomInt(-enemy.inaccuracy, enemy.inaccuracy)
+                        x: Firefly.center.x + getRandomInt(-this.inaccuracy, this.inaccuracy),
+                        y: Firefly.center.y + getRandomInt(-this.inaccuracy, this.inaccuracy)
                     };
-                    fireMissile(enemy.center, target);
-                    enemy.cooldown = enemy.cooldownTime;
+                    fireMissile(this.center, target);
+                    this.cooldown = this.cooldownTime;
                     // hardly visible, needs to be more frames.
-                    enemy.status.isFiring = true;
+                    this.status.isFiring = true;
                     laserSound.play();
                 }
             }
             else {
-                enemy.status.isFiring = false;
-                enemy.cooldown--;
+                this.status.isFiring = false;
+                this.cooldown--;
             }
 
-            enemy.draw();
+            this.draw();
         },
 
         destroy: function () {
-            explode(enemy.center.x, enemy.center.y, 2.5);
+            explode(this.center.x, this.center.y, 2.5);
 
-            //enemy.elem.parentNode.removeChild(enemy.elem);
-            // Remove enemy from enemies list.
-            //game.remove(enemy);
-            enemies = enemies.filter(function notMe(el) { return el !== enemy; }, enemy);
+            //this.elem.parentNode.removeChild(this.elem);
+            // Remove this from enemies list.
+            //game.remove(this);
+            enemies = enemies.filter(function notMe(el) { return el !== this; }, this);
 
             // Lame check.
             if (!enemies.length) alert("Win!");
@@ -372,35 +389,4 @@ function Enemy(canvas) {
     });
 
     return enemy;
-}
-
-function shipMove(ship, directions) {
-    // Angle 0 is X-axis, direction is in radians.
-    var angle = ship.angle * (Math.PI / 180);
-
-    var forward = directions.forward ? 1 : 0;
-    var back = directions.back ? -0.4 : 0;
-    var left = directions.left ? 0.4 : 0;
-    var right = directions.right ? -0.4 : 0;
-
-    // Forward and backward.
-    ship.speedX = ship.speedX + (forward + back) * ship.acceleration * Math.cos(angle);
-    ship.speedY = ship.speedY + (forward + back) * ship.acceleration * Math.sin(angle);
-
-    // Left and right.
-    ship.speedX = ship.speedX + (left + right) * ship.acceleration * Math.cos(angle - Math.PI / 2);
-    ship.speedY = ship.speedY + (left + right) * ship.acceleration * Math.sin(angle - Math.PI / 2);
-
-    // Friction.
-    ship.speedX *= 0.985;
-    ship.speedY *= 0.985;
-
-    //console.log(ship.speedX.toFixed(2), ship.speedY.toFixed(2), ship.angle.toFixed(2), direction.toFixed(2));
-
-    ship.x = ship.x + ship.speedX;
-    ship.y = ship.y + ship.speedY;
-
-    //debugger;
-
-    updateCenter(ship);
 }

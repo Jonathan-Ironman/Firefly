@@ -88,7 +88,7 @@ function pointFromAngle(point, angle, distance) {
     x = point.x + x;
     y = point.y + y;
 
-    return { x: x, y: y }
+    return { x: x, y: y };
 }
 
 //function Point(x, y) {
