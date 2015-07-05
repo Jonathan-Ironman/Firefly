@@ -46,7 +46,7 @@ function explode(x, y, scale) {
     explosionSound.play();
 }
 
-// Bind end to explosion.    
+// Bind end to explosion.
 $(document).on('transitionend',
 function (event) {
     var $target = $(event.target);

@@ -29,12 +29,12 @@
     animation: animate-explosion2 2.5s steps(46);
 }
 
-@-webkit-keyframes animate-explosion2 {   
+@-webkit-keyframes animate-explosion2 {
     0% {background-position: 0 0;}
     100% {background-position: -3450px 0;}
 }
 
-@keyframes animate-explosion2 {   
+@keyframes animate-explosion2 {
     0% {background-position: 0 0;}
     100% {background-position: -3450px 0;}
 }

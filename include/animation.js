@@ -8,7 +8,5 @@
 //    var frame = 0;
 
 //    function draw(point) {
-
 //    }
 //}
-

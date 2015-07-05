@@ -109,7 +109,6 @@ function Playlist(playlist, volume, random) {
     };
 
     this.play = function play() {
-
         player.play();
     };
     this.pause = function pause() { player.pause(); };

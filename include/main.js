@@ -254,7 +254,7 @@ function Player(canvas) {
 
             this.turn(mousePosition);
 
-            // Find the direction modifiers for player. 
+            // Find the direction modifiers for player.
             var directions = {
                 forward: keyDown[KEYS.UP_ARROW] || keyDown[KEYS.KEY_W],
                 back: keyDown[KEYS.DOWN_ARROW] || keyDown[KEYS.KEY_S],
@@ -308,7 +308,6 @@ function Player(canvas) {
             game = false;
             alert("Game over!");
         }
-
     });
 
     return player;
@@ -385,7 +384,6 @@ function Enemy(canvas) {
             // Lame check.
             if (!enemies.length) alert("Win!");
         }
-
     });
 
     return enemy;

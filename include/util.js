@@ -129,7 +129,6 @@ window.onerror = function errorHandler(errorMsg, url, lineNumber) {
     return alert(errorMsg, url, 4000);
 };
 
-
 // Object.extend helper method.
 if (typeof Object.extend !== 'function') {
     Object.extend = function (d, s) {
@@ -190,7 +189,6 @@ function isIntersecting1(Point1, Point2, Point3, Point4) {
 
 // Adapted from: http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/1968345#1968345
 function line_intersects(p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y) {
-
     var s1_x, s1_y, s2_x, s2_y;
     s1_x = p1_x - p0_x;
     s1_y = p1_y - p0_y;

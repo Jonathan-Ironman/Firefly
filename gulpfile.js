@@ -5,7 +5,7 @@ var uglify = require('gulp-uglify');
 
 // Tasks.
 gulp.task("scripts", function () {
-	gulp.src("include/*.js")
+    gulp.src("include/*.js")
 	.pipe(concat("main.min.js"))
 	.pipe(uglify())
 	.pipe(gulp.dest("include/min"));
