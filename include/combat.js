@@ -1,4 +1,5 @@
-﻿function fireMissile(p1, p2) {
+﻿"use strict";
+function fireMissile(p1, p2) {
     var targetX = p2.x,
         targetY = p2.y,
         missileStartX = p1.x,
@@ -47,11 +48,11 @@ function explode(x, y, scale) {
 }
 
 // Bind end to explosion.
-$(document).on('transitionend',
+document.addEventListener('transitionend',
 function (event) {
     var $target = $(event.target);
     // Missile.
-    if ($target.hasClass("missile") && event.originalEvent.propertyName === 'top') { // Keep from firing for each attr.
+    if ($target.hasClass("missile") && event.propertyName === 'top') { // Keep from firing for each attr.
         //console.log("Missile: " + event.type + " " + event.timeStamp);
         //alert("KILL KILL!");
         explode(
@@ -62,8 +63,8 @@ function (event) {
     }
 });
 
-// TODO: move to xxx.js
-$(document).on('animationend webkitAnimationEnd',
+// TODO: add webkit prefix (multi listener: http://stackoverflow.com/a/8797106/2407212)
+document.addEventListener('animationend',
 function (event) {
     var $target = $(event.target);
     // Explosion.

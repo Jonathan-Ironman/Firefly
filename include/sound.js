@@ -1,4 +1,5 @@
-﻿//var musicPlayer, speechPlayer, effectsPlayer;
+﻿"use strict";
+//var musicPlayer, speechPlayer, effectsPlayer;
 
 var deleteMeAudio = { // TODO: replace
     togglePlayers: function (player) {

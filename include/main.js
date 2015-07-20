@@ -1,3 +1,4 @@
+"use strict";
 // Globals.
 var Firefly;
 var enemies = new Array(20);
@@ -15,7 +16,7 @@ var backgroundAudio = new Playlist(playlist, 0.2, true);
 var canvas;
 
 // Initialize game.
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function () {
     //backgroundAudio.play();
 
     //disableKeys([KEYS.F1, KEYS.F5]);
@@ -34,10 +35,10 @@ $(document).ready(function () {
     canvas.bg = new Image();
     canvas.bg.src = "images/bg.jpg";
 
-    Firefly = Player(canvas);
+    Firefly = createPlayer(canvas);
 
     for (var i = 0; i < enemies.length; i++) {
-        enemies[i] = Enemy(canvas);
+        enemies[i] = createEnemy(canvas);
         //enemies[i].init();
     }
 
@@ -97,7 +98,7 @@ function Ship(canvas, options) {
 
     this.health = 30;
     //this.damage = 10;
-
+    this.ctx = canvas.ctx;
     this.status = {};
 
     this.speedX = 0;
@@ -117,8 +118,8 @@ function Ship(canvas, options) {
     this.width = 50;
     this.height = 50;
 
-    var fireImg = new Image();
-    fireImg.src = "images/objects/GunFlare.png";
+    this.fireImg = new Image();
+    this.fireImg.src = "images/objects/GunFlare.png";
 
     // Customize properties.
     Object.extend(this, options);
@@ -129,51 +130,52 @@ function Ship(canvas, options) {
     };
 
     // Set ship image.
-    var img = new Image();
-    img.src = this.imageSrc;
+    this.image = new Image();
+    this.image.src = this.imageSrc;
 
     // Measure it.
-    img.onload = function () {
-        that.width = img.width;
-        that.height = img.height;
+    this.image.onload = function () {
+        that.width = that.image.width;
+        that.height = that.image.height;
         that.center = {
             x: that.x + that.width / 2,
             y: that.y + that.height / 2
         };
     };
+}
 
-    this.draw = function draw() {
-        this.drawRotated(canvas, img);
+Ship.prototype = {
+    draw: function draw() {
+        this.drawRotated();
 
         if (this.status.isFiring) {
-            this.drawRotated(canvas, fireImg);
+            this.drawRotated(this.fireImg);
         }
-    };
+    },
 
-    this.drawRotated = function drawRotated(canvas, image) {
+    drawRotated: function drawRotated(image) {
+        image || (image = this.image);
         var x = this.center.x;
         var y = this.center.y;
-        var context = canvas.ctx;
+        var context = this.ctx;
         var degrees = this.angle + 90;
         var angleInRadians = degrees * Math.PI / 180;
 
         context.translate(x, y);
-        //context.rotate(angleInRadians);
         context.rotate(angleInRadians);
         context.drawImage(image, -this.width / 2, -this.height / 2);
         context.rotate(-angleInRadians);
-        //context.rotate(-angleInRadians);
         context.translate(-x, -y);
-    };
+    },
 
     // Set center.
-    this.updateCenter = function updateCenter() {
+    updateCenter: function updateCenter() {
         this.center.x = this.x + this.width / 2;
         this.center.y = this.y + this.height / 2;
-    };
+    },
 
     // Set the ships angle.
-    this.turn = function turn(point) {
+    turn: function turn(point) {
         // Find ship angle.
         var targetAngle = getAngle(this.center, point);
         var turnDegrees = mod(targetAngle - this.angle + 180, 360) - 180;
@@ -187,10 +189,10 @@ function Ship(canvas, options) {
         else {
             this.angle += this.turnSpeed;
         }
-    };
+    },
 
     // TODO only hit first target.
-    this.fireGun = function fireGun() {
+    fireGun: function fireGun() {
         // Long gun range.
         var endpoint = pointFromAngle(this.center, this.angle, 10000);
 
@@ -201,16 +203,16 @@ function Ship(canvas, options) {
                 //enemies[i].elem.style.backgroundColor = "red";
                 enemies[i].health--;
             }
-                // todo: only is cleared when firing!
             else
                 //enemies[i].elem.style.backgroundColor = "";
+                // todo: only is cleared when firing!
                 enemies[i].status.takingFire = false;
         }
 
         laserSound.play();
-    };
+    },
 
-    this.shipMove = function shipMove(directions) {
+    shipMove: function shipMove(directions) {
         // Angle 0 is X-axis, direction is in radians.
         var angle = this.angle * (Math.PI / 180);
 
@@ -235,11 +237,10 @@ function Ship(canvas, options) {
         this.y = this.y + this.speedY;
 
         this.updateCenter();
-    };
-}
+    }
+};
 
-// Uh?
-function Player(canvas) {
+function createPlayer(canvas) {
     var player = new Ship(canvas, {
         acceleration: 0.8,
         turnSpeed: 4,
@@ -307,14 +308,14 @@ function Player(canvas) {
             //Firefly = "game over";
             game = false;
             alert("Game over!");
+            // Make enemies go mad? :)
         }
     });
 
     return player;
 }
 
-// Uh?
-function Enemy(canvas) {
+function createEnemy(canvas) {
     var enemy = new Ship(canvas, {
         speed: 5,
         x: chance(50) ? getRandomInt(50, 300) : getRandomInt(canvas.width - 250, canvas.width - 400),
@@ -342,7 +343,7 @@ function Enemy(canvas) {
 
                 this.shipMove(directions);
             }
-                // Move closer.
+                // Move away.
             else if (lineDistance(this.center, Firefly.center) < 300) {
                 var directions = {
                     back: true
