@@ -75,7 +75,7 @@ function render() {
 
 // **isColliding()** returns true if two passed bodies are colliding.
 // The approach is to test for five situations.  If any are true,
-// the bodies are definitely not colliding.  If none of them
+// the bodies are definitely not colliding. If none of them
 // are true, the bodies are colliding.
 // 1. b1 is the same body as b2.
 // 2. Right of `b1` is to the left of the left of `b2`.
@@ -84,7 +84,7 @@ function render() {
 // 5. Top of `b1` is below the bottom of `b2`.
 function isColliding(b1, b2) {
     return !(
-      b1 === b2 ||
+        b1 === b2 ||
         b1.x + b1.width < b2.x - b2.width ||
         b1.y + b1.height < b2.y - b2.height ||
         b1.x - b1.width > b2.x + b2.width ||
@@ -100,6 +100,7 @@ function Ship(canvas, options) {
     //this.damage = 10;
     this.ctx = canvas.ctx;
     this.status = {};
+    this.lastStatusChange = Infinity;
 
     this.speedX = 0;
     this.speedY = 0;
@@ -120,6 +121,9 @@ function Ship(canvas, options) {
 
     this.fireImg = new Image();
     this.fireImg.src = "images/objects/GunFlare.png";
+
+    this.takingFireImg = new Image();
+    this.takingFireImg.src = "images/objects/BulletImpact.png";
 
     // Customize properties.
     Object.extend(this, options);
@@ -148,9 +152,11 @@ Ship.prototype = {
     draw: function draw() {
         this.drawRotated();
 
-        if (this.status.isFiring) {
+        if (this.status.firing)
             this.drawRotated(this.fireImg);
-        }
+
+        if (this.status.takingFire)
+            this.drawRotated(this.takingFireImg);
     },
 
     drawRotated: function drawRotated(image) {
@@ -196,16 +202,15 @@ Ship.prototype = {
         if (this.cooldown > 0)
             return;
 
-        this.status.isFiring = true;
+        this.status.firing = true;
 
         // Long gun range.
         var endpoint = pointFromAngle(this.center, this.angle, 10000);
         var intersecting = [];
 
         for (var i = 0; i < enemies.length; i++) {
-            if (lineIntersectsShip(this.center, endpoint, enemies[i])) {
+            if (lineIntersectsShip(this.center, endpoint, enemies[i]))
                 intersecting.push(enemies[i]);
-            }
         }
 
         // todo: only is cleared when firing! Status should be maintained per ship update.
@@ -226,6 +231,7 @@ Ship.prototype = {
 
         if (target) {
             target.status.takingFire = true;
+            target.lastStatusChange = 0;
             target.health--;
             endpoint = pointFromAngle(this.center, this.angle, distance1);
         }
@@ -286,7 +292,7 @@ function createPlayer(canvas) {
     var player = new Ship(canvas, {
         acceleration: 0.8,
         turnSpeed: 6,
-        health: 1000,
+        health: 500,
         // Explosions baby!
         cooldownTime: 0,
         imageSrc: "images/objects/Firefly.png",
@@ -296,7 +302,7 @@ function createPlayer(canvas) {
                 return this.destroy();
 
             // Reset stati.
-            this.status.isFiring = false;
+            this.status = {};
 
             this.turn(mousePosition);
 
@@ -371,6 +377,14 @@ function createEnemy(canvas) {
             if (this.health <= 0)
                 return this.destroy();
 
+            // Reset status if it was set long ago. TODO: this is fubar, some getter setter maybe?
+            if (this.lastStatusChange > 1) {
+                this.status = {};
+                this.lastStatusChange = 0;
+            }
+            else
+                this.lastStatusChange++;
+
             this.turn(Firefly.center);
 
             // Move out of player range
@@ -384,7 +398,7 @@ function createEnemy(canvas) {
 
                 this.shipMove(directions);
             }
-                // Move away.
+                // Back away.
             else if (lineDistance(this.center, Firefly.center) < 300) {
                 var directions = {
                     back: true
@@ -403,12 +417,12 @@ function createEnemy(canvas) {
                     fireMissile(this.center, target);
                     this.cooldown = this.cooldownTime;
                     // hardly visible, needs to be more frames.
-                    this.status.isFiring = true;
+                    this.status.firing = true;
                     laserSound.play();
                 }
             }
             else {
-                this.status.isFiring = false;
+                this.status.firing = false;
                 this.cooldown--;
             }
 
