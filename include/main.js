@@ -191,24 +191,66 @@ Ship.prototype = {
         }
     },
 
-    // TODO only hit first target.
+    // TODO Only works for player.
     fireGun: function fireGun() {
+        if (this.cooldown > 0)
+            return;
+
+        this.status.isFiring = true;
+
         // Long gun range.
         var endpoint = pointFromAngle(this.center, this.angle, 10000);
+        var intersecting = [];
 
         for (var i = 0; i < enemies.length; i++) {
-            // Check if bullet line intersects the enemy outline.
             if (lineIntersectsShip(this.center, endpoint, enemies[i])) {
-                enemies[i].status.takingFire = true;
-                //enemies[i].elem.style.backgroundColor = "red";
-                enemies[i].health--;
+                intersecting.push(enemies[i]);
             }
-            else
-                //enemies[i].elem.style.backgroundColor = "";
-                // todo: only is cleared when firing!
-                enemies[i].status.takingFire = false;
         }
 
+        // todo: only is cleared when firing! Status should be maintained per ship update.
+        //enemies[i].status.takingFire = false;
+
+        var target;
+        var distance1 = Infinity;
+        var distance2;
+
+        // Only hit closest target.
+        for (var i = 0; i < intersecting.length; i++) {
+            distance2 = lineDistance(this.center, intersecting[i].center);
+            if (distance2 < distance1) {
+                distance1 = distance2;
+                target = intersecting[i];
+            }
+        }
+
+        if (target) {
+            target.status.takingFire = true;
+            target.health--;
+            endpoint = pointFromAngle(this.center, this.angle, distance1);
+        }
+
+        // Draw double laser.
+        var offset = 12;
+        var p1 = pointFromAngle(this.center, this.angle - 90, offset);
+        var p2 = pointFromAngle(this.center, this.angle - 90, -offset);
+        var t1 = pointFromAngle(endpoint, this.angle - 90, offset);
+        var t2 = pointFromAngle(endpoint, this.angle - 90, -offset);
+
+        var context = this.ctx;
+        context.beginPath();
+
+        context.moveTo(p1.x, p1.y);
+        context.lineTo(t1.x, t1.y);
+        context.moveTo(p2.x, p2.y);
+        context.lineTo(t2.x, t2.y);
+
+        context.lineWidth = 0.8;
+        //context.setLineDash([1]);
+        context.strokeStyle = 'orange';
+        context.stroke();
+
+        this.cooldown = this.cooldownTime;
         laserSound.play();
     },
 
@@ -243,7 +285,7 @@ Ship.prototype = {
 function createPlayer(canvas) {
     var player = new Ship(canvas, {
         acceleration: 0.8,
-        turnSpeed: 4,
+        turnSpeed: 6,
         health: 1000,
         // Explosions baby!
         cooldownTime: 0,
@@ -252,6 +294,9 @@ function createPlayer(canvas) {
         update: function () {
             if (this.health <= 0)
                 return this.destroy();
+
+            // Reset stati.
+            this.status.isFiring = false;
 
             this.turn(mousePosition);
 
@@ -281,18 +326,14 @@ function createPlayer(canvas) {
                     this.cooldown = this.cooldownTime;
                     laserSound.play();
                 }
+
+                // Lasers!
+                if (mouseDown[BUTTONS.LEFT]) {
+                    this.fireGun();
+                }
             }
             else
                 this.cooldown--;
-
-            // Lasers!
-            if (mouseDown[BUTTONS.LEFT]) {
-                this.fireGun();
-                this.status.isFiring = true;
-            }
-            else {
-                this.status.isFiring = false;
-            }
 
             // Do paint madness.
             //paintMadness();
