@@ -71,6 +71,9 @@ function render() {
     for (var i = 0; i < enemies.length; i++) {
         enemies[i].update();
     }
+
+    // HP bar.
+    ui.showHealth(canvas.ctx, Firefly);
 }
 
 // **isColliding()** returns true if two passed bodies are colliding.
@@ -97,6 +100,7 @@ function Ship(canvas, options) {
     var that = this;
 
     this.health = 30;
+    this.maxHealth = 30;
     //this.damage = 10;
     this.ctx = canvas.ctx;
     this.status = {};
@@ -265,7 +269,7 @@ Ship.prototype = {
         var angle = this.angle * (Math.PI / 180);
 
         var forward = directions.forward ? 1 : 0;
-        var back = directions.back ? -0.4 : 0;
+        var back = directions.back ? -0.3 : 0;
         var left = directions.left ? 0.4 : 0;
         var right = directions.right ? -0.4 : 0;
 
@@ -293,6 +297,7 @@ function createPlayer(canvas) {
         acceleration: 0.8,
         turnSpeed: 6,
         health: 500,
+        maxHealth: 500,
         // Explosions baby!
         cooldownTime: 0,
         imageSrc: "images/objects/Firefly.png",
@@ -348,12 +353,14 @@ function createPlayer(canvas) {
         },
 
         destroy: function () {
+            // TODO: mad loop with game state...
             explode(this.center.x, this.center.y, 5);
             //this.elem.parentElement.removeChild(this.elem);
 
             //game.remove(this);
             //Firefly = "game over";
-            game = false;
+            //game = false;
+            //pauseGame();
             alert("Game over!");
             // Make enemies go mad? :)
         }

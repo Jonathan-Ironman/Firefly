@@ -10,20 +10,32 @@
     <link rel="stylesheet" href="css/normal.css" />
     <link rel="stylesheet" href="css/explosions.css" />
     <link rel="stylesheet" href="css/combat.css" />
-    <!--<link rel="stylesheet" href="css/firefly.css" />-->
+    <link rel="stylesheet" href="css/userInterface.css" />
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
     <canvas id="canvas"></canvas>
+
+    <div class="menu">
+        <h1>MENU</h1>
+        <div>
+            <button type="button" onclick="newGame()">New game</button>
+            <button type="button" onclick="continueGame()">Continue</button>
+        </div>
+    </div>
+
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="include/jquery-2.0.2.js"><\/script>')</script>
     <script src="include/util.js"></script>
+    <script src="include/calculations.js"></script>
+    <script src="include/userInterface.js"></script>
     <script src="include/sound.js"></script>
     <script src="include/animation.js"></script>
     <script src="include/combat.js"></script>
     <script src="include/main.js"></script>
-    <script src="include/google/ga.js"></script>
 
     <!--<script src="include/min/main.min.js"></script>-->
+    <script src="include/google/ga.js"></script>
 </body>
 </html>
