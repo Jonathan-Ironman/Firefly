@@ -102,7 +102,7 @@ function paintMadness() {
             laserSound.play();
         }
     }
-    // Clear last. (Don't work well with Array.shift)
+    // Clear last. (Doesn't work well with Array.shift)
     if (keyDown[KEYS.KEY_V]) {
         paint.pop();
     }
