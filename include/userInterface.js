@@ -1,4 +1,5 @@
-﻿var ui = {
+﻿"use strict";
+var ui = {
     showHealth: function (ctx, entity) {
         var width = ctx.canvas.width * entity.health / entity.maxHealth;
         // Small bar on top of canvas.
