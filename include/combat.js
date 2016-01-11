@@ -1,24 +1,4 @@
 ﻿"use strict";
-function fireMissile(p1, p2) {
-    var targetX = p2.x,
-        targetY = p2.y,
-        missileStartX = p1.x,
-        missileStartY = p1.y,
-        missile = document.createElement("div");
-
-    missile.style.top = missileStartY + "px";
-    missile.style.left = missileStartX + "px";
-    missile.className = "missile";
-
-    $(document.body).append(missile);
-
-    // Delay or it will travel instant.
-    window.setTimeout(function () {
-        missile.style.top = targetY + "px";
-        missile.style.left = targetX + "px";
-    }, 10);
-}
-
 function explode(x, y, scale) {
     var explosion = document.createElement("div");
     var width;
@@ -75,6 +55,8 @@ function (event) {
     }
 });
 
+
+/*
 var paint = [];
 function paintMadness() {
     // PAINT MADNESS.
@@ -111,3 +93,154 @@ function paintMadness() {
         paint = [];
     }
 }
+*/
+
+// TODO use inheritance to share methods with other entities.
+function Projectile(options) {
+    var that = this;
+
+    this.owner = options.owner;
+    this.target = options.target;
+    this.type = options.type;
+
+    this.health = options.health || 1;
+    this.damage = options.damage || 10;
+    this.ctx = options.ctx;
+    //this.status = {};
+    //this.lastStatusChange = Infinity;
+
+    this.speedX = options.speedX || 0;
+    this.speedY = options.speedY || 0;
+
+    this.acceleration = options.acceleration || 1;
+    this.turnSpeed = options.turnSpeed || 0;
+
+    //this.inaccuracy = 100;
+
+    this.angle = options.angle;
+
+    // Temp, see img.onload!
+    this.width = options.width || 6;
+    this.height = options.height || 12;
+    this.x = options.x - this.width / 2;
+    this.y = options.y - this.height / 2;
+    this.center = {
+        x: this.x + this.width / 2,
+        y: this.y + this.height / 2
+    };
+
+    // Set projectile image.
+    this.image = new Image();
+    this.image.src = "images/objects/bolt1.png";
+
+    // TODO this needs to be smarter, better measure once per image.
+    // Measure it.
+    this.image.onload = function () {
+        that.width = that.image.width;
+        that.height = that.image.height;
+
+        that.x = options.x - that.width / 2;
+        that.y = options.y - that.height / 2;
+
+        that.center = {
+            x: that.x + that.width / 2,
+            y: that.y + that.height / 2
+        };
+    };
+}
+
+Projectile.prototype = {
+    draw: function draw() {
+        this.drawRotated();
+    },
+
+    drawRotated: function drawRotated(image) {
+        image || (image = this.image);
+        var x = this.center.x;
+        var y = this.center.y;
+        var context = this.ctx;
+        var degrees = this.angle + 90;
+        var angleInRadians = degrees * Math.PI / 180;
+
+        context.translate(x, y);
+        context.rotate(angleInRadians);
+        context.drawImage(image, -this.width / 2, -this.height / 2);
+        context.rotate(-angleInRadians);
+        context.translate(-x, -y);
+    },
+
+    updateCenter: function updateCenter() {
+        this.center.x = this.x + this.width / 2;
+        this.center.y = this.y + this.height / 2;
+    },
+
+    turn: function turn(point) {
+        // Find projectile angle.
+        var targetAngle = getAngle(this.center, point);
+        var turnDegrees = mod(targetAngle - this.angle + 180, 360) - 180;
+
+        if (turnDegrees > -4 && turnDegrees < 4) {
+            this.angle = targetAngle;
+        }
+        else if (turnDegrees < 0) {
+            this.angle -= this.turnSpeed;
+        }
+        else {
+            this.angle += this.turnSpeed;
+        }
+    },
+
+    move: function move(directions) {
+        // Angle 0 is X-axis, direction is in radians.
+        var angle = this.angle * (Math.PI / 180);
+
+        var forward = directions.forward ? 1 : 0;
+        var back = directions.back ? -0.3 : 0;
+        var left = directions.left ? 0.4 : 0;
+        var right = directions.right ? -0.4 : 0;
+
+        // Forward and backward.
+        this.speedX = this.speedX + (forward + back) * this.acceleration * Math.cos(angle);
+        this.speedY = this.speedY + (forward + back) * this.acceleration * Math.sin(angle);
+
+        // Left and right.
+        this.speedX = this.speedX + (left + right) * this.acceleration * Math.cos(angle - Math.PI / 2);
+        this.speedY = this.speedY + (left + right) * this.acceleration * Math.sin(angle - Math.PI / 2);
+
+        // Friction.
+        this.speedX *= 0.985;
+        this.speedY *= 0.985;
+
+        this.x = this.x + this.speedX;
+        this.y = this.y + this.speedY;
+
+        this.updateCenter();
+    },
+
+    update: function () {
+        if (this.health <= 0)
+            return this.destroy();
+        else if (this.x < 0 || this.y < 0 || this.x > this.ctx.canvas.width || this.y > this.ctx.canvas.height)
+            return this.remove();
+
+        //this.turn(this.target);
+
+        // Direction modifiers.
+        var directions = {
+            forward: true
+        };
+
+        this.move(directions);
+
+        this.draw();
+    },
+
+    destroy: function () {
+        explode(this.center.x, this.center.y);
+        projectiles = projectiles.filter(function notMe(el) { return el !== this; }, this);
+    },
+
+    remove: function () {
+        projectiles = projectiles.filter(function notMe(el) { return el !== this; }, this);
+    }
+};

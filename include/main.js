@@ -1,7 +1,8 @@
 "use strict";
 // Globals.
 var Firefly;
-var enemies = new Array(20);
+var enemies = new Array(8);
+var projectiles = [];
 var explosions = [];
 var game = true;
 var laserSound = new SoundPool("sound/effects/laser.wav", 0.05, 300);
@@ -66,7 +67,27 @@ function render() {
     // Reset explosions.
     explosions = [];
 
+    // Check ships vs projectiles.
+    for (var p = 0; p < projectiles.length; p++) {
+        for (var j = 0; j < enemies.length; j++) {
+            // Check for friendly fire as well.
+            if (projectiles[p].owner === Firefly && isColliding(projectiles[p], enemies[j])) {
+                enemies[j].health -= projectiles[p].damage;
+                projectiles[p].health = 0;
+            }
+        }
+        // Check player.
+        if (projectiles[p].owner !== Firefly && isColliding(projectiles[p], Firefly)) {
+            Firefly.health -= projectiles[p].damage;
+            projectiles[p].health = 0;
+        }
+    }
+
     Firefly.update();
+
+    for (var i = 0; i < projectiles.length; i++) {
+        projectiles[i].update();
+    }
 
     for (var i = 0; i < enemies.length; i++) {
         enemies[i].update();
@@ -99,8 +120,8 @@ function isColliding(b1, b2) {
 function Ship(canvas, options) {
     var that = this;
 
-    this.health = 30;
-    this.maxHealth = 30;
+    this.health = 50;
+
     //this.damage = 10;
     this.ctx = canvas.ctx;
     this.status = {};
@@ -131,6 +152,8 @@ function Ship(canvas, options) {
 
     // Customize properties.
     Object.extend(this, options);
+
+    this.maxHealth = this.health;
 
     this.center = {
         x: this.x + this.width / 2,
@@ -264,7 +287,24 @@ Ship.prototype = {
         laserSound.play();
     },
 
-    shipMove: function shipMove(directions) {
+    fireMissile: function fireMissile(launchPoint, target) {
+        var missileOptions = {
+            owner: this,
+            // TODO: target doesn't have use for dumbfire
+            //target: target,
+            x: launchPoint.x,
+            y: launchPoint.y,
+            type: 'dumbfire',
+            ctx: this.ctx,
+            angle: this.angle,
+            speedX: this.speedX,
+            speedY: this.speedY
+        };
+
+        projectiles.push(new Projectile(missileOptions));
+    },
+
+    move: function move(directions) {
         // Angle 0 is X-axis, direction is in radians.
         var angle = this.angle * (Math.PI / 180);
 
@@ -297,9 +337,8 @@ function createPlayer(canvas) {
         acceleration: 0.8,
         turnSpeed: 6,
         health: 500,
-        maxHealth: 500,
         // Explosions baby!
-        cooldownTime: 0,
+        cooldownTime: 5,
         imageSrc: "images/objects/Firefly.png",
 
         update: function () {
@@ -319,7 +358,7 @@ function createPlayer(canvas) {
                 right: keyDown[KEYS.RIGHT_ARROW] || keyDown[KEYS.KEY_D]
             };
 
-            this.shipMove(directions);
+            this.move(directions);
             //if (!movement) this.elem.classList.remove("moving");
 
             // Firing.
@@ -332,8 +371,8 @@ function createPlayer(canvas) {
                     var t1 = pointFromAngle(mousePosition, this.angle - 90, offset * 0.5);
                     var t2 = pointFromAngle(mousePosition, this.angle - 90, -offset * 0.5);
 
-                    fireMissile(p1, t1);
-                    fireMissile(p2, t2);
+                    this.fireMissile(p1, t1);
+                    this.fireMissile(p2, t2);
                     this.cooldown = this.cooldownTime;
                     laserSound.play();
                 }
@@ -396,23 +435,22 @@ function createEnemy(canvas) {
 
             // Move out of player range
             var facing = isFacing(Firefly, this);
+            var directions = {};
             if (facing) {
-                var directions = {
+                directions = {
                     forward: true,
                     left: facing > 0,
                     right: facing < 0
                 };
-
-                this.shipMove(directions);
             }
                 // Back away.
             else if (lineDistance(this.center, Firefly.center) < 300) {
-                var directions = {
+                directions = {
                     back: true
                 };
-
-                this.shipMove(directions);
             }
+
+            this.move(directions);
 
             // Fire.
             if (this.cooldown < 1) {
@@ -421,7 +459,7 @@ function createEnemy(canvas) {
                         x: Firefly.center.x + getRandomInt(-this.inaccuracy, this.inaccuracy),
                         y: Firefly.center.y + getRandomInt(-this.inaccuracy, this.inaccuracy)
                     };
-                    fireMissile(this.center, target);
+                    this.fireMissile(this.center, target);
                     this.cooldown = this.cooldownTime;
                     // hardly visible, needs to be more frames.
                     this.status.firing = true;
