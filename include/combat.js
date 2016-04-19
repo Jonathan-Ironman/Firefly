@@ -112,7 +112,7 @@ function Projectile(options) {
     this.speedX = options.speedX || 0;
     this.speedY = options.speedY || 0;
 
-    this.acceleration = options.acceleration || 1;
+    this.acceleration = options.acceleration || 0.3;
     this.turnSpeed = options.turnSpeed || 0;
 
     //this.inaccuracy = 100;
