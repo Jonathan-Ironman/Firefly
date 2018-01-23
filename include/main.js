@@ -19,6 +19,8 @@ var canvas;
 // Initialize game.
 document.addEventListener("DOMContentLoaded", function () {
     //backgroundAudio.play();
+    laserSound.mute(true);
+    explosionSound.mute(true);
 
     //disableKeys([KEYS.F1, KEYS.F5]);
 
@@ -97,15 +99,7 @@ function render() {
     ui.showHealth(canvas.ctx, Firefly);
 }
 
-// **isColliding()** returns true if two passed bodies are colliding.
-// The approach is to test for five situations.  If any are true,
-// the bodies are definitely not colliding. If none of them
-// are true, the bodies are colliding.
-// 1. b1 is the same body as b2.
-// 2. Right of `b1` is to the left of the left of `b2`.
-// 3. Bottom of `b1` is above the top of `b2`.
-// 4. Left of `b1` is to the right of the right of `b2`.
-// 5. Top of `b1` is below the bottom of `b2`.
+// Returns true if two passed bodies are colliding.
 function isColliding(b1, b2) {
     return !(
         b1 === b2 ||
@@ -226,8 +220,9 @@ Ship.prototype = {
 
     // TODO Only works for player.
     fireGun: function fireGun() {
-        if (this.cooldown > 0)
-            return;
+        // This was redundant
+        //if (this.cooldown > 0)
+        //    return;
 
         this.status.firing = true;
 

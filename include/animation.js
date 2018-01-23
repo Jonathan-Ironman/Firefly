@@ -7,7 +7,7 @@ function Sprite(options) {
     var duration = options.duration;
     var context = options.context;
 
-    var frame = 0;
+    var frame = 0; 
 }
 
 Sprite.prototype = {
